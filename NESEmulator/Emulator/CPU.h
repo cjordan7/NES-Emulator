@@ -20,6 +20,18 @@ NS_ASSUME_NONNULL_BEGIN
 
     uint8_t status;
 
+    uint16_t addrAbsolute;
+    uint16_t addrRelative;
+
+    // Get data according to addressing mode
+    uint8_t fetched;
+
+    // MARK: List of registers
+    uint8_t accumulator;
+    uint8_t x;
+    uint8_t y;
+
+    uint8_t sp;
     uint16_t pc;
 }
 

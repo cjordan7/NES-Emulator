@@ -12,8 +12,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    [self load];
     // Do any additional setup after loading the view.
+    [self load];
 }
 
 - (void)setRepresentedObject:(id)representedObject {
@@ -23,7 +23,6 @@
 }
 
 - (void)load {
-    NSLog(@"Hello");
 }
 
 
