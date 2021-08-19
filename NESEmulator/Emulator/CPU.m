@@ -49,15 +49,9 @@
 }
 
 - (void)clock {
-    if(cycles == 0 /* and not illegal opcode*/) {
-//        opcode = read(pc);
-//
-//        // setFlagOnBoolean(DONT_CARE, true);
-//
-//        cycles = instructionsTable[opcode].cycles;
-//        cycles += (this->*instructionsTable[opcode].addressMode)() & (this->*instructionsTable[opcode].operation)();
-
-        // setFlagOnBoolean(DONT_CARE, true);
+    if(cycles == 0) {
+        opcode = [self read:pc];
+        
     }
 
     --cycles;
