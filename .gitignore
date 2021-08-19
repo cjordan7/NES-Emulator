@@ -1,0 +1,12 @@
+
+.DS_Store
+
+NESEmulator/Assets.xcassets/
+NESEmulator/Base.lproj/
+NESEmulator.xcodeproj
+xcuserdata/
+build/
+
+NESEmulator.entitlements
+*Info.plist
+
