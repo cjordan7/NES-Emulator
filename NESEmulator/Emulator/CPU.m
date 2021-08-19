@@ -81,9 +81,9 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
     sp = 0;
     pc = 0;
 
-    accumulator;
-    x;
-    y;
+    accumulator = 0;
+    x = 0;
+    y = 0;
 
     return self;
 }
