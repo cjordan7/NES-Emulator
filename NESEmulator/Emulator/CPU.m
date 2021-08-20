@@ -115,10 +115,6 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
     [self setStatus:V bit:((uint16)accumulator ^ c) & ((uint16)memory ^ c) & 0x0080];
 }
 
-//- (uint8_t)getDecimalFlag:uint8 a, uint8 b, uint16 r {
-//    return value & 0x080;
-//}
-
 - (uint8_t)setZeroFlag:(uint8_t)value {
     return !value;
 }
