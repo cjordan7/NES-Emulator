@@ -70,11 +70,10 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
     opcode = 0;
     cycles = 0;
 
-    status = 0;
+    [self setStatus];
 
-
-    addrAbsolute = 0;
-    addrRelative = 0;
+    addressAbsolute = 0;
+    addressRelative = 0;
 
     fetched = 0;
 
@@ -88,7 +87,7 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
     return self;
 }
 
-- (void)setStatus:(int)statusBit bit:(int)bit; {
+- (void)setStatus:(uint8_t)statusBit bit:(uint8_t)bit; {
     if(bit == 1) {
         status |= 1 << statusBit;
     } else if(bit == 0) {
@@ -100,10 +99,38 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
     }
 }
 
+- (void)setStatus {
+    status = -1;
+}
+
+- (uint8_t)getValueOfFlag:(uint8_t)flag {
+    return (status >> flag) & 0x01;
+}
+
+- (void)setNegativeFlag:(uint16_t)value {
+    [self setStatus:N bit:value & 0x080];
+}
+
+- (void)setOverflowFlag:(uint8)accumulator memory:(uint8)memory c:(uint16)c {
+    [self setStatus:V bit:((uint16)accumulator ^ c) & ((uint16)memory ^ c) & 0x0080];
+}
+
+//- (uint8_t)getDecimalFlag:uint8 a, uint8 b, uint16 r {
+//    return value & 0x080;
+//}
+
+- (uint8_t)setZeroFlag:(uint8_t)value {
+    return !value;
+}
+
+- (uint8_t)setCarryFlag:(uint16_t)value {
+    return value & 0xFF00;
+}
+
 - (void)clock {
     if(cycles == 0) {
         opcode = [self read:pc];
-
+        // TODO...
     }
 
     --cycles;
@@ -115,7 +142,9 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
 
 - (uint8_t)fetch {
     PRINT_ADDRESS("fetch");
-    fetched = [self read:addrAbsolute];
+
+    // TODO: If is not implicit !!
+    fetched = [self read:addressAbsolute];
 
     return fetched;
 }
@@ -128,25 +157,25 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
 
 - (uint8_t)addressImmediate {
     PRINT_ADDRESS("addressImmediate");
-    addrAbsolute = pc++;
+    addressAbsolute = pc++;
     return 0;
 }
 
 - (uint8_t)addressAbsolute {
     PRINT_ADDRESS("addressAbsolute");
-    addrAbsolute = [self read:pc++];
-    addrAbsolute |= [self read:pc++] << 8;
+    addressAbsolute = [self read:pc++];
+    addressAbsolute |= [self read:pc++] << 8;
     return 0;
 }
 
 - (uint8_t)addressZero {
-    PRINT_ADDRESS("addressAbsolute");
-    addrAbsolute = [self read:pc++] & 0x0FF;
+    PRINT_ADDRESS("addressZero");
+    addressAbsolute = [self read:pc++] & 0x0FF;
     return 0;
 }
 
-- (uint8_t)addressImplied {
-    PRINT_ADDRESS("addressImplied");
+- (uint8_t)addressImplicit {
+    PRINT_ADDRESS("addressImplicit");
     fetched = accumulator;
     return 0;
 }
@@ -163,13 +192,130 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
     uint16_t value = ([self read:pc++] << 8) | lower;
 
     if(lower != 0x00FF) {
-        addrAbsolute = ([self read:value + 1] << 8) | [self read:value];
+        addressAbsolute = [self read:value + 1] << 8;
     } else {
-        addrAbsolute = ([self read:value & 0xFF00] << 8) | [self read:value];
+        addressAbsolute = [self read:value & 0xFF00] << 8;
     }
+
+    addressAbsolute |= [self read:value];
 
     return 0;
 }
 
+- (uint8_t)addressIndexedXIndirect {
+    uint16_t lo = [self read:(uint16_t)[self read:pc] + x] & 0x00FF;
+    uint16_t hi = [self read:(uint16_t)[self read:pc] + x + 1] & 0x00FF;
+
+    addressAbsolute = (hi << 8) | lo;
+
+    ++pc;
+
+    return 0;
+}
+
+- (uint8_t)addClockCycleOnPageChange:(uint8_t)temp {
+    return (addressAbsolute >> 8) == temp ? 0: 1;
+}
+
+- (uint8_t)addressIndexedYIndirect {
+    // TODO: Check this
+    uint16_t temp = [self read:(pc + 1) & 0x00FF];
+    addressAbsolute = [self read:[self read:pc & 0x00FF] | (temp << 8) + y];
+
+    ++pc;
+    return [self addClockCycleOnPageChange:temp];
+}
+
+// TODO: Get rid of return and use it on the cycle variable
+- (uint8_t) addressZeroX {
+    addressAbsolute = ([self read:pc] + x) & 0x0FF;
+    ++pc;
+    return 0;
+}
+
+- (uint8_t)addressZeroY {
+    addressAbsolute = ([self read:pc] + y) & 0x0FF;
+    ++pc;
+    return 0;
+}
+
+- (uint8_t)addressAbsoluteUtil:(uint8_t)xORy {
+    addressAbsolute = [self read:pc++];
+    uint8_t temp = [self read:pc++];
+    addressAbsolute |= temp << 8;
+    addressAbsolute += xORy;
+
+    return [self addClockCycleOnPageChange:temp];
+}
+
+- (uint8_t)addressAbsoluteX {
+    return [self addressAbsoluteUtil:x];
+}
+
+- (uint8_t)addressAbsoluteY {
+    return [self addressAbsoluteUtil:y];
+}
+
+// Opcodes
+- (uint8_t)opcodeADC {
+    [self fetch];
+
+    uint16_t sum = [self getValueOfFlag:C] + accumulator + fetched;
+
+    [self setNegativeFlag:sum];
+    [self setOverflowFlag:accumulator memory:fetched c:sum];
+
+    accumulator = sum & 0x0FF;
+    [self setZeroFlag:sum];
+    [self setCarryFlag:sum];
+
+    return 0;
+}
+
+- (uint8_t)opcodeAND {
+    [self fetch];
+    accumulator = accumulator & fetched;
+    [self setNegativeFlag:accumulator];
+    [self setZeroFlag:accumulator];
+    return 1;
+}
+
+- (uint8_t)opcodeASL {
+    [self fetch];
+
+    uint16_t shift = fetched << 1;
+
+    uint8_t temp = shift & 0x0FF;
+
+    [self setNegativeFlag:shift];
+    [self setZeroFlag:temp];
+    [self setCarryFlag:shift];
+
+    return 0;
+}
+
+- (void)branchOnSet:(int)flag set:(int)set {
+    // Check flag is equal to the set value
+    if([self getValueOfFlag:flag] == set) {
+        addressAbsolute = pc + addressRelative;
+
+        if((pc & 0xFF00) != (addressAbsolute & 0xFF00)) {
+            ++cycles;
+        }
+
+        pc = addressAbsolute;
+        ++cycles;
+    }
+}
+
+- (uint8_t)opcodeBCC {
+    [self branchOnSet:C set:0];
+    return 0;
+}
+
+- (uint8_t)opcodeBCS {
+    [self branchOnSet:C set:1];
+    return 0;
+}
 
 @end

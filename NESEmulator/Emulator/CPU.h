@@ -20,8 +20,8 @@ NS_ASSUME_NONNULL_BEGIN
 
     uint8_t status;
 
-    uint16_t addrAbsolute;
-    uint16_t addrRelative;
+    uint16_t addressAbsolute;
+    uint16_t addressRelative;
 
     // Get data according to addressing mode
     uint8_t fetched;
