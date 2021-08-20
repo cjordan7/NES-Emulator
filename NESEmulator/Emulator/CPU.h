@@ -18,13 +18,13 @@ typedef struct {
     uint8_t cycles;
 
     uint8_t status;
-    bool N;
-    bool V;
-    bool B;
-    bool D;
-    bool I;
-    bool Z;
-    bool C;
+    BOOL N;
+    BOOL V;
+    BOOL B;
+    BOOL D;
+    BOOL I;
+    BOOL Z;
+    BOOL C;
 
     uint16_t addressAbsolute;
     uint16_t addressRelative;
