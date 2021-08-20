@@ -6,8 +6,11 @@
 //
 
 #import <inttypes.h>
+#include "Debug.h"
 
-#import "CPU.h"
+#include "CPU.h"
+
+#define DEBUGGING_BREAKPOINT
 
 #define DEBUGGING_ADDRESSES 1
 #define DEBUGGING_OPCODES 1
@@ -53,15 +56,15 @@ NSLog((@"" type ": Function %s - Line: %d\n\t\t" message),\
 __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
 
 @implementation CPU
-    // MARK: Status bit 7 to bit 0
-    static const int N = 7; // Negative
-    static const int V = 6; // Overflow
-    static const int DONT_CARE = 5; // ignored
-    static const int B = 4; // Break
-    static const int D = 3; // Decimal (use BCD for arithmetics)
-    static const int I = 2; // Interrupt (IRQ disable)
-    static const int Z = 1; // Zero
-    static const int C = 0; // Carry
+// MARK: Status bit 7 to bit 0
+static const int N = 7; // Negative
+static const int V = 6; // Overflow
+static const int DONT_CARE = 5; // ignored
+static const int B = 4; // Break
+static const int D = 3; // Decimal (use BCD for arithmetics)
+static const int I = 2; // Interrupt (IRQ disable)
+static const int Z = 1; // Zero
+static const int C = 0; // Carry
 
 - (instancetype)init {
     self = [super init];
@@ -124,12 +127,27 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
 }
 
 - (void)clock {
-    if(cycles == 0) {
-        opcode = [self read:pc];
-        // TODO...
-    }
+#ifdef DEBUGGING_BREAKPOINT
+    if(dMode != DPause) {
+#endif
 
-    --cycles;
+        if(cycles == 0) {
+#ifdef DEBUGGING_BREAKPOINT
+            if(dMode == DStep) {
+                dMode = DPause;
+                return;
+            }
+#endif
+
+            opcode = [self read:pc];
+            // TODO...
+        }
+
+        --cycles;
+#ifdef DEBUGGING_BREAKPOINT
+    }
+#endif
+
 }
 
 - (uint8_t)read:(uint16_t)address {
@@ -312,6 +330,47 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
 - (uint8_t)opcodeBCS {
     [self branchOnSet:C set:1];
     return 0;
+}
+
+// =============================================================================
+// Debugging functions
+
+- (CPUState)DEBUGgetCPUState {
+    CPUState cpuState;
+
+    cpuState.memory = memory;
+    cpuState.opcode = opcode;
+    cpuState.cycles = cycles;
+
+    cpuState.status = status;
+    cpuState.N = [self getValueOfFlag:N];
+    cpuState.V = [self getValueOfFlag:V];
+    cpuState.B = [self getValueOfFlag:B];
+    cpuState.D = [self getValueOfFlag:D];
+    cpuState.I = [self getValueOfFlag:I];
+    cpuState.Z = [self getValueOfFlag:Z];
+    cpuState.C = [self getValueOfFlag:C];
+
+    cpuState.addressAbsolute = addressAbsolute;
+    cpuState.addressRelative = addressRelative;
+
+    // Get data according to addressing mode
+    cpuState.fetched = fetched;
+
+    // MARK: List of registers
+    cpuState.accumulator = accumulator;
+    cpuState.x = x;
+    cpuState.y = y;
+
+    cpuState.sp = sp;
+    cpuState.pc = pc;
+    return cpuState;
+}
+
+- (NSArray*)DEBUGDisassemble {
+    NSMutableArray* disassembleArray = [[NSMutableArray alloc]init];
+
+    return [disassembleArray copy];
 }
 
 @end
