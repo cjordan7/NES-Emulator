@@ -6,15 +6,17 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "../Utils.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface Bus : NSObject {
 @private
-    uint8_t ram[2*1024];
+    NES_u8 ram[2*1024];
 }
 
-- (uint8_t)cpuRead:(uint16_t)address;
+- (NES_u8)cpuRead:(NES_u16)address;
+- (void)cpuWrite:(NES_u16)address value:(NES_u8)value;
 
 @end
 

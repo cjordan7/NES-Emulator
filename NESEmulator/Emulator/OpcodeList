@@ -1,0 +1,257 @@
+HEX, intValue, Name of Opcode, Name of Addressing Mode, Syntax, Length, Number of Cycle, Cycles on Page Change, Comments
+$00	 0	 BRK	 Implied	 BRK	 1	 7	 0
+$01	 1	 ORA	 Indirect-X	 ORA ($4200, X)	 2	 6	 0
+$02	 2	 STP	 Implied	 STP	 1	 2	 0
+$03	 3	 SLO	 Zero Page-X	 SLO $42, X	 -1	 8	 0
+$04	 4	 IGN	 Zero Page	 IGN $42	 -1	 3	 0
+$05	 5	 ORA	 Zero Page	 ORA $42	 2	 3	 0
+$06	 6	 ASL	 Zero Page	 ASL $42	 2	 5	 0
+$07	 7	 SLO	 Zero Page	 SLO $42	 -1	 5	 0
+$08	 8	 PHP	 Implied	 PHP	 1	 3	 0
+$09	 9	 ORA	 Immediate	 ORA #$42	 2	 2	 0
+$0A	 10	 ASL	 Accumulator	 ASL A	 1	 2	 0
+$0B	 11	 ANC	 Immediate	 ANC #$42	 -1	 2	 0
+$0C	 12	 IGN	 Absolute	 IGN $4200	 -1	 4	 0
+$0D	 13	 ORA	 Absolute	 ORA $4200	 3	 4	 0
+$0E	 14	 ASL	 Absolute	 ASL $4200	 3	 6	 0
+$0F	 15	 SLO	 Absolute	 SLO $4200	 -1	 6	 0
+$10	 16	 BPL	 Relative	 BPL $4200	 2	 2	 1	 (+1 if branch succeeds +2 if to a new page)
+$11	 17	 ORA	 Indirect-Y	 ORA ($4200), Y	 2	 5	 1
+$12	 18	 STP	 Implied	 STP	 1	 2	 0
+$13	 19	 SLO	 Zero Page-Y	 SLO $42, Y	 -1	 8	 0
+$14	 20	 IGN	 Zero Page-X	 IGN $42, X	 -1	 4	 0
+$15	 21	 ORA	 Zero Page-X	 ORA $42, X	 2	 4	 0
+$16	 22	 ASL	 Zero Page-X	 ASL $42, X	 2	 6	 0
+$17	 23	 SLO	 Zero Page-X	 SLO $42, X	 -1	 6	 0
+$18	 24	 CLC	 Implied	 CLC	 1	 2	 0
+$19	 25	 ORA	 Absolute-Y	 ORA $4200, Y	 3	 4	 1
+$1A	 26	 NOP	 Implied	 NOP	 1	 2	 0
+$1B	 27	 SLO	 Absolute-Y	 SLO $4200, Y	 -1	 7	 0
+$1C	 28	 IGN	 Absolute-X	 IGN $4200, X	 -1	 4	 1
+$1D	 29	 ORA	 Absolute-X	 ORA $4200, X	 3	 4	 1
+$1E	 30	 ASL	 Absolute-X	 ASL $4200, X	 3	 7	 0
+$1F	 31	 SLO	 Absolute-X	 SLO $4200, X	 -1	 7	 0
+$20	 32	 JSR	 Absolute	 JSR $4200	 3	 6	 0
+$21	 33	 AND	 Indirect-X	 AND ($4200, X)	 2	 6	 0
+$22	 34	 STP	 Implied	 STP	 1	 2	 0
+$23	 35	 RLA	 Zero Page-X	 RLA $42, X	 -1	 8	 0
+$24	 36	 BIT	 Zero Page	 BIT $42	 2	 3	 0
+$25	 37	 AND	 Zero Page	 AND $42	 2	 3	 0
+$26	 38	 ROL	 Zero Page	 ROL $42	 2	 5	 0
+$27	 39	 RLA	 Zero Page	 RLA $42	 -1	 5	 0
+$28	 40	 PLP	 Implied	 PLP	 1	 4	 0
+$29	 41	 AND	 Immediate	 AND #$42	 2	 2	 0
+$2A	 42	 ROL	 Accumulator	 ROL A	 1	 2	 0
+$2B	 43	 ANC	 Immediate	 ANC #$42	 -1	 2	 0
+$2C	 44	 BIT	 Absolute	 BIT $4200	 3	 4	 0
+$2D	 45	 AND	 Absolute	 AND $4200	 3	 4	 0
+$2E	 46	 ROL	 Absolute	 ROL $4200	 3	 6	 0
+$2F	 47	 RLA	 Absolute	 RLA $4200	 -1	 6	 0
+$30	 48	 BMI	 Relative	 BMI $4200	 2	 2	 1	 (+1 if branch succeeds +2 if to a new page)
+$31	 49	 AND	 Indirect-Y	 AND ($4200), Y	 2	 5	 1
+$32	 50	 STP	 Implied	 STP	 1	 2	 0
+$33	 51	 RLA	 Zero Page-Y	 RLA $42, Y	 -1	 8	 0
+$34	 52	 IGN	 Zero Page-X	 IGN $42, X	 -1	 4	 0
+$35	 53	 AND	 Zero Page-X	 AND $42, X	 2	 4	 0
+$36	 54	 ROL	 Zero Page-X	 ROL $42, X	 2	 6	 0
+$37	 55	 RLA	 Zero Page-X	 RLA $42, X	 -1	 6	 0
+$38	 56	 SEC	 Implied	 SEC	 1	 2	 0
+$39	 57	 AND	 Absolute-Y	 AND $4200, Y	 3	 4	 1
+$3A	 58	 NOP	 Implied	 NOP	 1	 2	 0
+$3B	 59	 RLA	 Absolute-Y	 RLA $4200, Y	 -1	 7	 0
+$3C	 60	 IGN	 Absolute-X	 IGN $4200, X	 -1	 4	 1
+$3D	 61	 AND	 Absolute-X	 AND $4200, X	 3	 4	 1
+$3E	 62	 ROL	 Absolute-X	 ROL $4200, X	 3	 7	 0
+$3F	 63	 RLA	 Absolute-X	 RLA $4200, X	 -1	 7	 0
+$40	 64	 RTI	 Implied	 RTI	 1	 6	 0
+$41	 65	 EOR	 Indirect-X	 EOR ($4200, X)	 2	 6	 0
+$42	 66	 STP	 Implied	 STP	 1	 2	 0
+$43	 67	 SRE	 Zero Page-X	 SRE $42, X	 -1	 8	 0
+$44	 68	 IGN	 Zero Page	 IGN $42	 -1	 3	 0
+$45	 69	 EOR	 Zero Page	 EOR $42	 2	 3	 0
+$46	 70	 LSR	 Zero Page	 LSR $42	 2	 5	 0
+$47	 71	 SRE	 Zero Page	 SRE $42	 -1	 5	 0
+$48	 72	 PHA	 Implied	 PHA	 1	 3	 0
+$49	 73	 EOR	 Immediate	 EOR #$42	 2	 2	 0
+$4A	 74	 LSR	 Accumulator	 LSR A	 1	 2	 0
+$4B	 75	 ALR	 Immediate	 ALR #$42	 -1	 2	 0
+$4C	 76	 JMP	 Absolute	 JMP $4200	 3	 3	 0
+$4D	 77	 EOR	 Absolute	 EOR $4200	 3	 4	 0
+$4E	 78	 LSR	 Absolute	 LSR $4200	 3	 6	 0
+$4F	 79	 SRE	 Absolute	 SRE $4200	 -1	 6	 0
+$50	 80	 BVC	 Relative	 BVC $4200	 2	 2	 1	 (+1 if branch succeeds +2 if to a new page)
+$51	 81	 EOR	 Indirect-Y	 EOR ($4200), Y	 2	 5	 1
+$52	 82	 STP	 Implied	 STP	 1	 2	 0
+$53	 83	 SRE	 Zero Page-Y	 SRE $42, Y	 -1	 8	 0
+$54	 84	 IGN	 Zero Page-X	 IGN $42, X	 -1	 4	 0
+$55	 85	 EOR	 Zero Page-X	 EOR $42, X	 2	 4	 0
+$56	 86	 LSR	 Zero Page-X	 LSR $42, X	 2	 6	 0
+$57	 87	 SRE	 Zero Page-X	 SRE $42, X	 -1	 6	 0
+$58	 88	 CLI	 Implied	 CLI	 1	 2	 0
+$59	 89	 EOR	 Absolute-Y	 EOR $4200, Y	 3	 4	 1
+$5A	 90	 NOP	 Implied	 NOP	 1	 2	 0
+$5B	 91	 SRE	 Absolute-Y	 SRE $4200, Y	 -1	 7	 0
+$5C	 92	 IGN	 Absolute-X	 IGN $4200, X	 -1	 4	 1
+$5D	 93	 EOR	 Absolute-X	 EOR $4200, X	 3	 4	 1
+$5E	 94	 LSR	 Absolute-X	 LSR $4200, X	 3	 7	 0
+$5F	 95	 SRE	 Absolute-X	 SRE $4200, X	 -1	 7	 0
+$60	 96	 RTS	 Implied	 RTS	 1	 6	 0
+$61	 97	 ADC	 Indirect-X	 ADC ($4200, X)	 2	 6	 0
+$62	 98	 STP	 Implied	 STP	 1	 2	 0
+$63	 99	 RRA	 Zero Page-X	 RRA $42, X	 -1	 8	 0
+$64	 100	 IGN	 Zero Page	 IGN $42	 -1	 3	 0
+$65	 101	 ADC	 Zero Page	 ADC $42	 2	 3	 0
+$66	 102	 ROR	 Zero Page	 ROR $42	 2	 5	 0
+$67	 103	 RRA	 Zero Page	 RRA $42	 -1	 5	 0
+$68	 104	 PLA	 Implied	 PLA	 1	 4	 0
+$69	 105	 ADC	 Immediate	 ADC #$42	 2	 2	 0
+$6A	 106	 ROR	 Accumulator	 ROR A	 1	 2	 0
+$6B	 107	 ARR	 Immediate	 ARR #$42	 -1	 2	 0
+$6C	 108	 JMP	 Indirect	 JMP ($4200)	 3	 5	 0
+$6D	 109	 ADC	 Absolute	 ADC $4200	 3	 4	 0
+$6E	 110	 ROR	 Absolute	 ROR $4200	 3	 6	 0
+$6F	 111	 RRA	 Absolute	 RRA $4200	 -1	 6	 0
+$70	 112	 BVS	 Relative	 BVS $4200	 2	 2	 1	 (+1 if branch succeeds +2 if to a new page)
+$71	 113	 ADC	 Indirect-Y	 ADC ($4200), Y	 2	 5	 1
+$72	 114	 STP	 Implied	 STP	 1	 2	 0
+$73	 115	 RRA	 Zero Page-Y	 RRA $42, Y	 -1	 8	 0
+$74	 116	 IGN	 Zero Page-X	 IGN $42, X	 -1	 4	 0
+$75	 117	 ADC	 Zero Page-X	 ADC $42, X	 2	 4	 0
+$76	 118	 ROR	 Zero Page-X	 ROR $42, X	 2	 6	 0
+$77	 119	 RRA	 Zero Page-X	 RRA $42, X	 -1	 6	 0
+$78	 120	 SEI	 Implied	 SEI	 1	 2	 0
+$79	 121	 ADC	 Absolute-Y	 ADC $4200, Y	 3	 4	 1
+$7A	 122	 NOP	 Implied	 NOP	 1	 2	 0
+$7B	 123	 RRA	 Absolute-Y	 RRA $4200, Y	 -1	 7	 0
+$7C	 124	 IGN	 Absolute-X	 IGN $4200, X	 -1	 4	 1
+$7D	 125	 ADC	 Absolute-X	 ADC $4200, X	 3	 4	 1
+$7E	 126	 ROR	 Absolute-X	 ROR $4200, X	 3	 7	 0
+$7F	 127	 RRA	 Absolute-X	 RRA $4200, X	 -1	 7	 0
+$80	 128	 SKB	 Immediate	 SKB #$42	 -1	 2	 0
+$81	 129	 STA	 Indirect-X	 STA ($4200, X)	 2	 6	 0
+$82	 130	 SKB	 Immediate	 SKB #$42	 -1	 2	 0
+$83	 131	 SAX	 Zero Page-X	 SAX $42, X	 -1	 6	 0
+$84	 132	 STY	 Zero Page	 STY $42	 2	 3	 0
+$85	 133	 STA	 Zero Page	 STA $42	 2	 3	 0
+$86	 134	 STX	 Zero Page	 STX $42	 2	 3	 0
+$87	 135	 SAX	 Zero Page	 SAX $42	 -1	 3	 0
+$88	 136	 DEY	 Implied	 DEY	 1	 2	 0
+$89	 137	 SKB	 Immediate	 SKB #$42	 -1	 2	 0
+$8A	 138	 TXA	 Implied	 TXA	 1	 2	 0
+$8B	 139	 XAA	 Immediate	 XAA #$42	 -1	 2	 0
+$8C	 140	 STY	 Absolute	 STY $4200	 3	 4	 0
+$8D	 141	 STA	 Absolute	 STA $4200	 3	 4	 0
+$8E	 142	 STX	 Absolute	 STX $4200	 3	 4	 0
+$8F	 143	 SAX	 Absolute	 SAX $4200	 -1	 4	 0
+$90	 144	 BCC	 Relative	 BCC $4200	 2	 2	 1	 (+1 if branch succeeds +2 if to a new page)
+$91	 145	 STA	 Indirect-Y	 STA ($4200), Y	 2	 6	 0
+$92	 146	 STP	 Implied	 STP	 1	 2	 0
+$93	 147	 AHX	 Zero Page-Y	 AHX $42, Y	 -1	 6	 0
+$94	 148	 STY	 Zero Page-X	 STY $42, X	 2	 4	 0
+$95	 149	 STA	 Zero Page-X	 STA $42, X	 2	 4	 0
+$96	 150	 STX	 Zero Page-Y	 STX $42, Y	 2	 4	 0
+$97	 151	 SAX	 Zero Page-Y	 SAX $42, Y	 -1	 4	 0
+$98	 152	 TYA	 Implied	 TYA	 1	 2	 0
+$99	 153	 STA	 Absolute-Y	 STA $4200, Y	 3	 5	 0
+$9A	 154	 TXS	 Implied	 TXS	 1	 2	 0
+$9B	 155	 TAS	 Absolute-Y	 TAS $4200, Y	 -1	 5	 0
+$9C	 156	 SHY	 Absolute-X	 SHY $4200, X	 -1	 5	 0
+$9D	 157	 STA	 Absolute-X	 STA $4200, X	 3	 5	 0
+$9E	 158	 SHX	 Absolute-Y	 SHX $4200, Y	 -1	 5	 0
+$9F	 159	 AHX	 Absolute-Y	 AHX $4200, Y	 -1	 5	 0
+$A0	 160	 LDY	 Immediate	 LDY #$42	 2	 2	 0
+$A1	 161	 LDA	 Indirect-X	 LDA ($4200, X)	 2	 6	 0
+$A2	 162	 LDX	 Immediate	 LDX #$42	 2	 2	 0
+$A3	 163	 LAX	 Zero Page-X	 LAX $42, X	 -1	 6	 0
+$A4	 164	 LDY	 Zero Page	 LDY $42	 2	 3	 0
+$A5	 165	 LDA	 Zero Page	 LDA $42	 2	 3	 0
+$A6	 166	 LDX	 Zero Page	 LDX $42	 2	 3	 0
+$A7	 167	 LAX	 Zero Page	 LAX $42	 -1	 3	 0
+$A8	 168	 TAY	 Implied	 TAY	 1	 2	 0
+$A9	 169	 LDA	 Immediate	 LDA #$42	 2	 2	 0
+$AA	 170	 TAX	 Implied	 TAX	 1	 2	 0
+$AB	 171	 LAX	 Immediate	 LAX #$42	 -1	 2	 0
+$AC	 172	 LDY	 Absolute	 LDY $4200	 3	 4	 0
+$AD	 173	 LDA	 Absolute	 LDA $4200	 3	 4	 0
+$AE	 174	 LDX	 Absolute	 LDX $4200	 3	 4	 0
+$AF	 175	 LAX	 Absolute	 LAX $4200	 -1	 4	 0
+$B0	 176	 BCS	 Relative	 BCS $4200	 2	 2	 1	 (+1 if branch succeeds +2 if to a new page)
+$B1	 177	 LDA	 Indirect-Y	 LDA ($4200), Y	 2	 5	 1
+$B2	 178	 STP	 Implied	 STP	 1	 2	 0
+$B3	 179	 LAX	 Zero Page-Y	 LAX $42, Y	 -1	 5	 0
+$B4	 180	 LDY	 Zero Page-X	 LDY $42, X	 2	 4	 0
+$B5	 181	 LDA	 Zero Page-X	 LDA $42, X	 2	 4	 0
+$B6	 182	 LDX	 Zero Page-Y	 LDX $42, Y	 2	 4	 0
+$B7	 183	 LAX	 Zero Page-Y	 LAX $42, Y	 -1	 4	 0
+$B8	 184	 CLV	 Implied	 CLV	 1	 2	 0
+$B9	 185	 LDA	 Absolute-Y	 LDA $4200, Y	 3	 4	 1
+$BA	 186	 TSX	 Implied	 TSX	 1	 2	 0
+$BB	 187	 LAS	 Absolute-Y	 LAS $4200, Y	 -1	 4	 1
+$BC	 188	 LDY	 Absolute-X	 LDY $4200, X	 3	 4	 1
+$BD	 189	 LDA	 Absolute-X	 LDA $4200, X	 3	 4	 1
+$BE	 190	 LDX	 Absolute-Y	 LDX $4200, Y	 3	 4	 1
+$BF	 191	 LAX	 Absolute-Y	 LAX $4200, Y	 -1	 4	 0
+$C0	 192	 CPY	 Immediate	 CPY #$42	 2	 2	 0
+$C1	 193	 CMP	 Indirect-X	 CMP ($4200, X)	 2	 6	 0
+$C2	 194	 SKB	 Immediate	 SKB #$42	 -1	 2	 0
+$C3	 195	 DCP	 Zero Page-X	 DCP $42, X	 -1	 8	 0
+$C4	 196	 CPY	 Zero Page	 CPY $42	 2	 3	 0
+$C5	 197	 CMP	 Zero Page	 CMP $42	 2	 3	 0
+$C6	 198	 DEC	 Zero Page	 DEC $42	 2	 5	 0
+$C7	 199	 DCP	 Zero Page	 DCP $42	 -1	 5	 0
+$C8	 200	 INY	 Implied	 INY	 1	 2	 0
+$C9	 201	 CMP	 Immediate	 CMP #$42	 2	 2	 0
+$CA	 202	 DEX	 Implied	 DEX	 1	 2	 0
+$CB	 203	 AXS	 Immediate	 AXS #$42	 -1	 2	 0
+$CC	 204	 CPY	 Absolute	 CPY $4200	 3	 4	 0
+$CD	 205	 CMP	 Absolute	 CMP $4200	 3	 4	 0
+$CE	 206	 DEC	 Absolute	 DEC $4200	 3	 6	 0
+$CF	 207	 DCP	 Absolute	 DCP $4200	 -1	 6	 0
+$D0	 208	 BNE	 Relative	 BNE $4200	 2	 2	 1	 (+1 if branch succeeds +2 if to a new page)
+$D1	 209	 CMP	 Indirect-Y	 CMP ($4200), Y	 2	 5	 1
+$D2	 210	 STP	 Implied	 STP	 1	 2	 0
+$D3	 211	 DCP	 Zero Page-Y	 DCP $42, Y	 -1	 8	 0
+$D4	 212	 IGN	 Zero Page-X	 IGN $42, X	 -1	 4	 0
+$D5	 213	 CMP	 Zero Page-X	 CMP $42, X	 2	 4	 0
+$D6	 214	 DEC	 Zero Page-X	 DEC $42, X	 2	 6	 0
+$D7	 215	 DCP	 Zero Page-X	 DCP $42, X	 -1	 6	 0
+$D8	 216	 CLD	 Implied	 CLD	 1	 2	 0
+$D9	 217	 CMP	 Absolute-Y	 CMP $4200, Y	 3	 4	 1
+$DA	 218	 NOP	 Implied	 NOP	 1	 2	 0
+$DB	 219	 DCP	 Absolute-Y	 DCP $4200, Y	 -1	 7	 0
+$DC	 220	 IGN	 Absolute-X	 IGN $4200, X	 -1	 4	 1
+$DD	 221	 CMP	 Absolute-X	 CMP $4200, X	 3	 4	 1
+$DE	 222	 DEC	 Absolute-X	 DEC $4200, X	 3	 7	 0
+$DF	 223	 DCP	 Absolute-X	 DCP $4200, X	 -1	 7	 0
+$E0	 224	 CPX	 Immediate	 CPX #$42	 2	 2	 0
+$E1	 225	 SBC	 Indirect-X	 SBC ($4200, X)	 2	 6	 0
+$E2	 226	 SKB	 Immediate	 SKB #$42	 -1	 2	 0
+$E3	 227	 ISC	 Zero Page-X	 ISC $42, X	 -1	 8	 0
+$E4	 228	 CPX	 Zero Page	 CPX $42	 2	 3	 0
+$E5	 229	 SBC	 Zero Page	 SBC $42	 2	 3	 0
+$E6	 230	 INC	 Zero Page	 INC $42	 2	 5	 0
+$E7	 231	 ISC	 Zero Page	 ISC $42	 -1	 5	 0
+$E8	 232	 INX	 Implied	 INX	 1	 2	 0
+$E9	 233	 SBC	 Immediate	 SBC #$42	 2	 2	 0
+$EA	 234	 NOP	 Implied	 NOP	 1	 2	 0
+$EB	 235	 SBC	 Immediate	 SBC #$42	 -1	 2	 0
+$EC	 236	 CPX	 Absolute	 CPX $4200	 3	 4	 0
+$ED	 237	 SBC	 Absolute	 SBC $4200	 3	 4	 0
+$EE	 238	 INC	 Absolute	 INC $4200	 3	 6	 0
+$EF	 239	 ISC	 Absolute	 ISC $4200	 -1	 6	 0
+$F0	 240	 BEQ	 Relative	 BEQ $4200	 2	 2	 1	 (+1 if branch succeeds +2 if to a new page)
+$F1	 241	 SBC	 Indirect-Y	 SBC ($4200), Y	 2	 5	 1
+$F2	 242	 STP	 Implied	 STP	 1	 2	 0
+$F3	 243	 ISC	 Zero Page-Y	 ISC $42, Y	 -1	 8	 0
+$F4	 244	 IGN	 Zero Page-X	 IGN $42, X	 -1	 4	 0
+$F5	 245	 SBC	 Zero Page-X	 SBC $42, X	 2	 4	 0
+$F6	 246	 INC	 Zero Page-X	 INC $42, X	 2	 6	 0
+$F7	 247	 ISC	 Zero Page-X	 ISC $42, X	 -1	 6	 0
+$F8	 248	 SED	 Implied	 SED	 1	 2	 0
+$F9	 249	 SBC	 Absolute-Y	 SBC $4200, Y	 3	 4	 1
+$FA	 250	 NOP	 Implied	 NOP	 -1	 2	 0
+$FB	 251	 ISC	 Absolute-Y	 ISC $4200, Y	 -1	 7	 0
+$FC	 252	 IGN	 Absolute-X	 IGN $4200, X	 -1	 4	 1
+$FD	 253	 SBC	 Absolute-X	 SBC $4200, X	 3	 4	 1
+$FE	 254	 INC	 Absolute-X	 INC $4200, X	 3	 7	 0
+$FF	 255	 ISC	 Absolute-X	 ISC $4200, X	 -1	 7	 0

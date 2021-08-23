@@ -8,16 +8,16 @@
 #import <Foundation/Foundation.h>
 
 #import "Bus.h"
+#import "../Utils.h"
 
 
 NS_ASSUME_NONNULL_BEGIN
 
 typedef struct {
-    uint8_t memory;
-    uint8_t opcode;
-    uint8_t cycles;
+    NES_u8 opcode;
+    NES_u8 cycles;
 
-    uint8_t status;
+    NES_u8 status;
     BOOL N;
     BOOL V;
     BOOL B;
@@ -26,43 +26,22 @@ typedef struct {
     BOOL Z;
     BOOL C;
 
-    uint16_t addressAbsolute;
-    uint16_t addressRelative;
+    NES_u16 addressAbsolute;
+    NES_u16 addressRelative;
 
     // Get data according to addressing mode
-    uint8_t fetched;
+    NES_u8 fetched;
 
     // MARK: List of registers
-    uint8_t accumulator;
-    uint8_t x;
-    uint8_t y;
+    NES_u8 accumulator;
+    NES_u8 x;
+    NES_u8 y;
 
-    uint8_t sp;
-    uint16_t pc;
+    NES_u8 sp;
+    NES_u16 pc;
 } CPUState;
 
-@interface CPU : NSObject {
-@private
-    uint8_t memory;
-    uint8_t opcode;
-    uint8_t cycles;
-
-    uint8_t status;
-
-    uint16_t addressAbsolute;
-    uint16_t addressRelative;
-
-    // Get data according to addressing mode
-    uint8_t fetched;
-
-    // MARK: List of registers
-    uint8_t accumulator;
-    uint8_t x;
-    uint8_t y;
-
-    uint8_t sp;
-    uint16_t pc;
-}
+@interface CPU : NSObject
 
 @property(nonatomic) Bus* bus;
 
