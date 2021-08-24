@@ -10,7 +10,7 @@
 
 @implementation FileManager
 
-- (NSString*)readFileInBundle:(NSString*)fileName type:(NSString*)type {
+- (NSString*)readFileFromBundle:(NSString*)fileName type:(NSString*)type {
     NSString* path = [[NSBundle mainBundle] pathForResource:fileName ofType:type];
 
     NSError* error;
@@ -36,6 +36,13 @@
                                       encoding:NSUTF8StringEncoding error:nil];
 }
 
+- (void)writeFileToBundle:(NSString*)fileName content:(NSString*)content {
+    NSError* error;
+
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:fileName ofType:@"log"];
+    [content writeToFile:filePath atomically:NO encoding:NSUTF8StringEncoding error:&error];
+}
+
 - (void)writeToFile:(NSString*)fileName
             content:(NSString*)content
                path:(NSString*)path
@@ -59,7 +66,7 @@
 
 - (NSArray*)getOpcodeWrappers {
     NSMutableArray* tempReturn = [[NSMutableArray alloc] init];
-    NSString* content = [self readFileInBundle:@"OpcodeList" type:@""];
+    NSString* content = [self readFileFromBundle:@"OpcodeList" type:@""];
 
     NSArray* lines = [self separateLines:content];
 

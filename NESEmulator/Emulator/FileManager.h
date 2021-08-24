@@ -11,8 +11,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface FileManager : NSObject
 
-- (NSString*)readFileInBundle:(NSString*)fileName type:(NSString*)type;
+- (NSString*)readFileFromBundle:(NSString*)fileName type:(NSString*)type;
 - (NSString*)readFile:(NSString*)filePath;
+- (void)writeFileToBundle:(NSString*)fileName content:(NSString*)content;
 - (void)writeToFile:(NSString*)fileName content:(NSString*)content
                path:(NSString*)path type:(NSString*)type;
 

@@ -16,10 +16,6 @@
 #define POTENTIAL_ADDITIONAL_CYCLE 1
 #define NO_ADDITIONAL_CYCLE 0
 
-
-#define UNUSED __attribute__((unused))
-
-
 #define DEBUGGING_BREAKPOINT
 
 #define DEBUGGING_ADDRESSES 1

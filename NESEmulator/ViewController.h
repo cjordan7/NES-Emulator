@@ -6,9 +6,12 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import <SpriteKit/SKScene.h>
+
 
 @interface ViewController : NSViewController
 
+@property(nonatomic, strong) SKScene* scene;
 
 @end
 
