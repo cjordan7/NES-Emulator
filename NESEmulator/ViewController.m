@@ -16,21 +16,45 @@
     uint32_t fullSize;
 }
 
+#define BUTTON_A_INDEX 0
+#define BUTTON_B_INDEX 1
+
+#define BUTTON_SELECT_INDEX 0
+#define BUTTON_START_INDEX 1
+#define BUTTON_PLUS_INDEX 2
+
+// Views for non debug columns
+@property (nonatomic, strong) NSArray* columnSelStPlus;
+@property (nonatomic, strong) NSView* columnScreen;
+@property (nonatomic, strong) NSArray* columnOfAB;
+
+@property (nonatomic, strong) NSStackView* columnOne;
+@property (nonatomic, strong) NSStackView* columnTwo;
+@property (nonatomic, strong) NSStackView* columnThree;
+
+// Views for debug column
+@property (nonatomic, strong) NSArray* debug;
+
 @end
 
 @implementation ViewController
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    // Do any additional setup after loading the view.
-    [self loadNES];
     skSceneSize.height = SK_SCENE_HEIGHT;
     skSceneSize.width = SK_SCENE_WIDTH;
     _scene = [SKScene sceneWithSize:skSceneSize];
     fullSize = skSceneSize.height*skSceneSize.width;
     [self test];
 
+
+    [self buildPlusSelectStartButtons];
+    [self buildNSImage];
+    [self buildABButtons];
+
     [self buildAppInterface];
+
+    [self loadNES];
 }
 
 - (void)test {
@@ -75,63 +99,57 @@
     // Update the view, if already loaded.
 }
 
-- (NSStackView*)buildPlusSelectStartButtons {
-    NSArray* array = [[NSArray alloc] initWithObjects:
+- (void)buildPlusSelectStartButtons {
+    _columnSelStPlus = [[NSArray alloc] initWithObjects:
                       [self imageViewButton:NSColor.redColor],
                       [self imageViewButton:NSColor.blueColor],
                       [self imageViewButton:NSColor.brownColor],
                       nil];
 
-    NSStackView* stack = [NSStackView stackViewWithViews:array];
-    stack.orientation = NSUserInterfaceLayoutOrientationVertical;
-    stack.distribution = NSStackViewDistributionFillEqually;
-    stack.translatesAutoresizingMaskIntoConstraints = NO;
+    _columnOne = [NSStackView stackViewWithViews:_columnSelStPlus];
+    _columnOne.orientation = NSUserInterfaceLayoutOrientationVertical;
+    _columnOne.distribution = NSStackViewDistributionFillEqually;
+    _columnOne.translatesAutoresizingMaskIntoConstraints = NO;
     NSPoint p = {0, 0};
-    [stack setFrameOrigin:p];
-
-    return stack;
+    [_columnOne setFrameOrigin:p];
 }
 
 // TODO: Replace by SKScene
-- (NSStackView*)buildNSImage {
-    NSView* imagView = [self imageViewSKScene:NSColor.blackColor];
+- (void)buildNSImage {
+    _columnScreen = [self imageViewSKScene:NSColor.blackColor];
 
-    NSStackView* stack = [[NSStackView alloc] init];
-    stack.orientation = NSUserInterfaceLayoutOrientationHorizontal;
-    stack.distribution = NSStackViewDistributionFillEqually;
-    stack.translatesAutoresizingMaskIntoConstraints = NO;
+    _columnTwo = [[NSStackView alloc] init];
+    _columnTwo.orientation = NSUserInterfaceLayoutOrientationHorizontal;
+    _columnTwo.distribution = NSStackViewDistributionFillEqually;
+    _columnTwo.translatesAutoresizingMaskIntoConstraints = NO;
 
-    [stack addSubview:imagView];
-    return stack;
+    [_columnTwo addSubview:_columnScreen];
 }
 
-- (NSStackView*)buildABButtons {
-    NSArray* array = [[NSArray alloc] initWithObjects:
-                      [self imageViewButton:NSColor.cyanColor],
-                      [self imageViewButton:NSColor.greenColor],
-                      nil];
+- (void)buildABButtons {
+    _columnOfAB = [[NSArray alloc] initWithObjects:
+                   [self imageViewButton:NSColor.cyanColor],
+                   [self imageViewButton:NSColor.greenColor],
+                   nil];
 
-    NSStackView* stack = [NSStackView stackViewWithViews:array];
+    _columnThree = [NSStackView stackViewWithViews:_columnOfAB];
 
-    stack.orientation = NSUserInterfaceLayoutOrientationVertical;
-    stack.distribution = NSStackViewDistributionFillEqually;
-    stack.translatesAutoresizingMaskIntoConstraints = NO;
-
-
-    return stack;
+    _columnThree.orientation = NSUserInterfaceLayoutOrientationVertical;
+    _columnThree.distribution = NSStackViewDistributionFillEqually;
+    _columnThree.translatesAutoresizingMaskIntoConstraints = NO;
 }
 
 - (void)buildAppInterface {
-    NSStackView* plusSelectStartButtons = [self buildPlusSelectStartButtons];
+    NSStackView* plusSelectStartButtons = _columnOne;
     [self.view addSubview:plusSelectStartButtons];
 
-    NSStackView* image = [self buildNSImage];
+    NSStackView* image = _columnTwo;
     NSLog(@"%f", image.frame.origin.x);
     NSLog(@"%f", image.frame.origin.y);
 
     [self.view addSubview:image];
 
-    NSStackView* abButtons = [self buildABButtons];
+    NSStackView* abButtons = _columnThree;
     [self.view addSubview:abButtons];
     NSLog(@"%f", abButtons.frame.origin.x);
     NSLog(@"%f", abButtons.frame.origin.y);

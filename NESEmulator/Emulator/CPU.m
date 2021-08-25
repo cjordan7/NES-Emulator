@@ -13,6 +13,8 @@
 #import "FileManager.h"
 #import "OpcodeWrapper.h"
 
+#define BOTTOM_STACK 0x0100
+
 #define POTENTIAL_ADDITIONAL_CYCLE 1
 #define NO_ADDITIONAL_CYCLE 0
 
@@ -61,8 +63,10 @@ NSLog((@"" type ": Function %s - Line: %d\n\t\t" message),\
 __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
 
 @interface CPU() {
-    NES_u8 opcode;
+    uint64 elapsedClock;
     NES_u8 cycles;
+
+    NES_u8 opcode;
 
     // Status registers
     NES_u8 status;
@@ -105,7 +109,7 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
 // MARK: Status bit 7 to bit 0
 static const NES_u8 N_BIT = 1 << 7; // Negative
 static const NES_u8 V_BIT = 1 << 6; // Overflow
-UNUSED static const NES_u8 DONT_CARE = 1 << 5; // Ignored
+UNUSED static const NES_u8 DONT_CARE_BIT = 1 << 5; // Ignored
 static const NES_u8 B_BIT = 1 << 4; // Break
 static const NES_u8 D_BIT = 1 << 3; // Decimal (use BCD for arithmetics)
 static const NES_u8 I_BIT = 1 << 2; // Interrupt (IRQ disable)
@@ -160,16 +164,16 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 }
 
 - (NES_u8)addClockCycleOnPageChange:(NES_u8)temp {
-    return addressAbsolute & 0x0100;//(addressAbsolute >> 8) == temp ? 0: 1;
+    return addressAbsolute & 0x0100;
 }
 
 - (NES_u8)addressAbsoluteUtil:(NES_u8)xORy {
-    addressAbsolute = [self read:pc++];
-    NES_u8 value = [self read:pc++];
-    addressAbsolute |= value << 8;
+    addressAbsolute = [self read:pc];
+    ++pc;
+    ++pc;
     addressAbsolute += xORy;
 
-    return [self addClockCycleOnPageChange:value];
+    return [self addClockCycleOnPageChange:addressAbsolute >> 8];
 }
 
 - (void)setStatus:(NES_u8)statusBit bit:(NES_u8)bit; {
@@ -197,6 +201,14 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
 - (NES_u8)N {
     return [self getValueOfFlag:N_BIT];
+}
+
+- (NES_u8)DONT_CARE {
+    return [self getValueOfFlag:DONT_CARE_BIT];
+}
+
+- (void)setDONT_CARE:(NES_u8)DONT_CARE {
+    [self setStatus:V_BIT bit:DONT_CARE];
 }
 
 - (void)setV:(NES_u8)V {
@@ -290,6 +302,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
             // TODO...
         }
 
+        ++elapsedClock;
         --cycles;
 #ifdef DEBUGGING_BREAKPOINT
     }
@@ -309,12 +322,46 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 //==============================================================================
 // Read and Write functions
 
+- (NES_u8)read16:(NES_u16)address {
+    NES_u16 lo = [self read:addressAbsolute];
+	NES_u16 hi = [self read:addressAbsolute+1];
+
+    return (hi << 8) | lo;
+}
+
+- (void)write16:(NES_u16)address value:(NES_u16)value {
+    [self write:address value:value & 0x00FF];
+    [self write:address+1 value:value >> 8];
+}
+
 - (NES_u8)read:(NES_u16)address {
     return [self.bus cpuRead:address];
 }
 
 - (void)write:(NES_u16)address value:(NES_u8)value {
-    return [self.bus cpuWrite:address value:value];
+    [self.bus cpuWrite:address value:value];
+}
+
+- (NES_u8)pop {
+    NES_u8 temp = [self.bus cpuRead:BOTTOM_STACK + sp];
+    ++sp;
+    return temp;
+}
+
+- (void)push:(NES_u8)value {
+    [self.bus cpuWrite:BOTTOM_STACK + sp value:value];
+    --sp;
+}
+
+- (NES_u16)pop16 {
+    NES_u16 temp = (NES_u16)[self pop];
+    temp |= (NES_u16)[self pop] << 8;
+    return temp;
+}
+
+- (void)push16:(NES_u16)value {
+    [self push:(value >> 8) & 0x00FF];
+    [self push:value & 0x00FF];
 }
 
 //==============================================================================
@@ -322,8 +369,9 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
 - (NES_u8)addressAbsolute {
     PRINT_ADDRESS("");
-    addressAbsolute = [self read:pc++];
-    addressAbsolute |= [self read:pc++] << 8;
+    addressAbsolute = [self read16:pc];
+    ++pc;
+    ++pc;
     return NO_ADDITIONAL_CYCLE;
 }
 
@@ -360,7 +408,6 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
 - (NES_u8)addressImplicit {
     PRINT_ADDRESS("");
-    // fetched = accumulator;
     return NO_ADDITIONAL_CYCLE;
 }
 
@@ -438,7 +485,8 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 //==============================================================================
 // Official Opcodes
 
-- (NES_u8)opcodeADC {
+// ADC - Add with Carry
+- (void)opcodeADC {
     PRINT_OPCODE("");
 //    [self fetch];
 
@@ -450,20 +498,19 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     accumulator = sum & 0x0FF;
     self.Z = [self calculateZ:sum & 0x0FF];
     self.C = [self calculateC:sum];
-
-    return POTENTIAL_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeAND {
+// AND - Logical AND
+- (void)opcodeAND {
     PRINT_OPCODE("");
 //    [self fetch];
     accumulator = accumulator & [self fetch];
     self.N = [self calculateN:accumulator];
     self.Z = [self calculateZ:accumulator];
-    return POTENTIAL_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeASL {
+// ASL - Arithmetic Left Shift
+- (void)opcodeASL {
     PRINT_OPCODE("");
 //    [self fetch];
 
@@ -472,8 +519,6 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     self.N = [self calculateN:shift];
     self.Z = [self calculateZ:shift & 0x0FF];
     self.C = [self calculateC:shift];
-
-    return NO_ADDITIONAL_CYCLE;
 }
 
 // Branching instructions
@@ -500,55 +545,56 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     [self branchOn:flag set:0];
 }
 
-- (NES_u8)opcodeBMI {
+// BMI
+- (void)opcodeBMI {
     PRINT_OPCODE("");
     [self branchOnSet:self.N];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeBPL {
+// BPL - Branch if Positive
+- (void)opcodeBPL {
     PRINT_OPCODE("");
     [self branchOnClear:self.N];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeBVS {
+// BVS - Branch if Overflow Set
+- (void)opcodeBVS {
     PRINT_OPCODE("");
     [self branchOnSet:self.V];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeBVC {
+// BVC - Branch if Overflow Clear
+- (void)opcodeBVC {
     PRINT_OPCODE("");
     [self branchOnClear:self.V];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeBCS {
+// BCS - Branch if Carry Set
+- (void)opcodeBCS {
     PRINT_OPCODE("");
     [self branchOnSet:self.C];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeBCC {
+// BCC - Branch if Carry Clear
+- (void)opcodeBCC {
     PRINT_OPCODE("");
     [self branchOnClear:self.C];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeBEQ {
+// BEQ - Branch if Equal
+- (void)opcodeBEQ {
     PRINT_OPCODE("");
     [self branchOnSet:self.Z];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeBNE {
+// BNE - Branch if Not Equal
+- (void)opcodeBNE {
     PRINT_OPCODE("");
     [self branchOnClear:self.Z];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeBIT {
+// BIT - Bit Test
+- (void)opcodeBIT {
     PRINT_OPCODE("");
     [self fetch];
 
@@ -557,37 +603,36 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     self.N = fetched & 0x080;
     self.V = fetched & 0x040;
     self.Z = [self calculateZ:bit];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeBRK {
+// BRK - Force Interrupt
+- (void)opcodeBRK {
     PRINT_OPCODE("");
-    // TODO:
-    return NO_ADDITIONAL_CYCLE;
+    // TODO
 }
 
-- (NES_u8)opcodeCLC {
+// CLC - Clear Carry (C) Flag
+- (void)opcodeCLC {
     PRINT_OPCODE("");
     self.C = 0;
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeCLD {
+// CLD - Clear Decimal Mode (D)
+- (void)opcodeCLD {
     PRINT_OPCODE("");
     self.D = 0;
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeCLI {
+// CLI - Clear Interrupt Disable (I) Flag
+- (void)opcodeCLI {
     PRINT_OPCODE("");
     self.I = 0;
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeCLV {
+// CLV - Clear Overflow (V) Flag
+- (void)opcodeCLV {
     PRINT_OPCODE("");
     self.V = 0;
-    return NO_ADDITIONAL_CYCLE;
 }
 
 // Comparison Opcodes
@@ -599,43 +644,41 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     self.C = [self calculateC:value >= fetched];
 }
 
-- (NES_u8)opcodeCMP {
+// CMP - Compare Accumulator
+- (void)opcodeCMP {
     PRINT_OPCODE("");
     [self compareOpcodes:accumulator];
-    return POTENTIAL_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeCPX {
+// CPX - Compare X Register
+- (void)opcodeCPX {
     PRINT_OPCODE("");
     [self compareOpcodes:x];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8) opcodeCPY {
+// CPY - Compare Y Register
+- (void) opcodeCPY {
     PRINT_OPCODE();
     [self compareOpcodes:y];
-    return NO_ADDITIONAL_CYCLE;
 }
 
 - (void)opcodeMemoryOp:(int)value {
     // TODO:...
 }
 
-- (NES_u8)opcodeDEC {
+// DEC - Decrement Memory
+- (void)opcodeDEC {
     PRINT_OPCODE("");
-//    [self fetch];
-
     NES_u16 memory = [self fetch] - 1;
 
     self.N = [self calculateN:memory];
     self.Z = [self calculateZ:memory];
 
     [self write:addressAbsolute value:memory & 0x0FF];
-
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeINC {
+// INC - Increment Memory
+- (void)opcodeINC {
     PRINT_OPCODE("");
     [self fetch];
     NES_u16 value = fetched + 1;
@@ -644,7 +687,6 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     self.Z = [self calculateZ:fetched];
 
     [self write:addressAbsolute value:value & 0x0FF];
-    return NO_ADDITIONAL_CYCLE;
 }
 
 - (NES_u8)decrementOpcode:(NES_u8)value {
@@ -655,19 +697,20 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     return value;
 }
 
-- (NES_u8)opcodeDEX {
+// DEX - Decrement X Register
+- (void)opcodeDEX {
     PRINT_OPCODE("");
     x = [self decrementOpcode:x];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeDEY {
+// DEY - Decrement Y Register
+- (void)opcodeDEY {
     PRINT_OPCODE("");
     y = [self decrementOpcode:y];
-    return NO_ADDITIONAL_CYCLE;
 }
 
-- (NES_u8)opcodeEOR {
+// EOR - Exclusive OR
+- (void)opcodeEOR {
     PRINT_OPCODE("");
     [self fetch];
     accumulator ^= fetched;
@@ -675,7 +718,6 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     self.Z = [self calculateZ:accumulator];
 
     // FIXME: TODO
-    return 0;
 }
 
 - (NES_u8)incrementOpcode:(NES_u8)value {
@@ -683,112 +725,344 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
     self.N = [self calculateN:value];
     self.Z = [self calculateZ:value];
+
     return value;
 }
 
-
-- (NES_u8)opcodeINX {
+// INX - Increment X Register
+- (void)opcodeINX {
     PRINT_OPCODE("");
     x = [self incrementOpcode:x];
-    return 0;
 }
 
-- (NES_u8)opcodeINY {
+// INY - Increment Y Register
+- (void)opcodeINY {
     PRINT_OPCODE("");
     y = [self incrementOpcode:y];
-    return 0;
 }
 
-- (NES_u8)opcodeJMP {
+// JMP - Jump
+- (void)opcodeJMP {
     PRINT_OPCODE("");
     pc = addressAbsolute;
-    return 0;
 }
 
-- (NES_u8)opcodeNOP {
-    return 0;
+// JSR - Jump To Subroutine
+- (void)opcodeJSR {
+    --pc;
+    [self push16:pc];
+    pc = addressAbsolute;
 }
+
+- (NES_u8)LDFunctions {
+    [self fetch];
+
+    NES_u8 value = fetched;
+    self.N = [self calculateN:value];
+    self.Z = [self calculateZ:value];
+
+    return value;
+}
+
+// LDA - Load Accumulator
+- (void)opcodeLDA {
+    accumulator = [self LDFunctions];
+}
+
+// LDX - Load X Register
+- (void)opcodeLDX {
+    x = [self LDFunctions];
+}
+
+// LDY - Load Y Register
+- (void)opcodeLDY {
+    y = [self LDFunctions];
+}
+
+// LSR - Logical Shift Right
+- (void)opcodeLSR {
+    [self fetch];
+
+    self.C = [self calculateC:fetched];
+    uint16_t shifted = fetched >> 1;
+
+    self.N = [self calculateN:shifted];
+    self.Z = [self calculateZ:shifted];
+
+    // TODO: Implied
+}
+
+// ORA - Logical Inclusive OR
+- (void)opcodeORA {
+    [self fetch];
+
+    accumulator |= fetched;
+    self.N = [self calculateN:accumulator];
+    self.Z = [self calculateZ:accumulator];
+}
+
+// PHA - Push Accumulator
+- (void)opcodePHA {
+    [self push:accumulator];
+}
+
+// PHP - Push Processor Status
+- (void)opcodePHP {
+    [self push:status | self.DONT_CARE | self.B];
+    self.B = 0;
+	self.DONT_CARE = 0;
+}
+
+// PLA - Pull Accumulator
+- (void)opcodePLA {
+    accumulator = [self pop];
+
+    self.N = [self calculateN:accumulator];
+    self.Z = [self calculateZ:accumulator];
+}
+
+// PLP - Pull Processor Status
+- (void)opcodePLP {
+    status = [self pop];
+    self.DONT_CARE = 1;
+}
+
+// ROL - Rotate Left
+- (void)opcodeROL {
+    [self fetch];
+
+	uint16_t temp = (fetched << 1) | self.C;
+    self.N = [self calculateN:temp];
+    self.Z = [self calculateZ:temp];
+    self.C = [self calculateC:temp];
+
+    // TODO: implied
+}
+
+// ROR - Rotate Right
+- (void)opcodeROR {
+    [self fetch];
+
+	uint16_t temp = (self.C << 7) | (fetched >> 1);
+
+    self.N = [self calculateN:temp];
+    self.Z = [self calculateZ:temp];
+    self.C = [self calculateC:temp];
+
+    // TODO: implied
+}
+
+// RTI - Return from Interrupt
+- (void)opcodeRTI {
+	status = [self pop];
+
+    status &= ~B_BIT;
+	status &= ~DONT_CARE_BIT;
+
+	pc = [self pop16];
+}
+
+// RTS - Return from Subroutine
+- (void)opcodeRTS {
+	pc = [self pop16];
+}
+
+// SBC - Subtract with Carry
+- (void)opcodeSBC {
+    // FIXME: TODO
+}
+
+// SEC - Set Carry Flag
+- (void)opcodeSEC {
+    self.C = 1;
+}
+
+// SEC - Set Decimal Flag
+- (void)opcodeSED {
+    self.D = 1;
+}
+
+// SEC - Set Interrupt Flag
+- (void)opcodeSEI {
+    self.I = 1;
+}
+
+// STA - Store Accumulator
+- (void)opcodeSTA {
+    [self write:addressAbsolute value:accumulator];
+}
+
+// STX - Store X
+- (void)opcodeSTX {
+    [self write:addressAbsolute value:x];
+}
+
+// STY - Store Y
+- (void)opcodeSTY {
+    [self write:addressAbsolute value:y];
+}
+
+// TAX - Transfer A to X
+- (void)opcodeTAX {
+    x = accumulator;
+    self.N = [self calculateN:x];
+    self.Z = [self calculateZ:x];
+}
+
+// TAY - Transfer A to Y
+- (void)opcodeTAY {
+    y = accumulator;
+    self.N = [self calculateN:y];
+    self.Z = [self calculateZ:y];
+}
+
+// TSX - Transfer SP to X
+- (void)opcodeTSX {
+    x = sp;
+    self.N = [self calculateN:x];
+    self.Z = [self calculateZ:x];
+}
+
+// TXA - Transfer X to Accumulator
+- (void)opcodeTXA {
+    accumulator = x;
+    self.N = [self calculateN:accumulator];
+    self.Z = [self calculateZ:accumulator];
+}
+
+// TXA - Transfer SP to X
+- (void)opcodeTXS {
+    sp = x;
+}
+
+// TXA - Transfer Y to AccumulatoX
+- (void)opcodeTYA {
+    accumulator = y;
+    self.N = [self calculateN:accumulator];
+    self.Z = [self calculateZ:accumulator];
+}
+
+- (void)interruptNMI {
+    [self push:(pc >> 8) & 0x00FF];
+    [self push:pc & 0x00FF];
+
+    self.B = 0;
+    self.DONT_CARE = 1;
+    self.I = 1;
+
+    [self push:status];
+
+    addressAbsolute = 0xFFFA;
+    pc = [self read16:addressAbsolute];
+
+	cycles = 8;
+}
+
+- (void)powerUp {
+	addressAbsolute = 0xFFFC;
+
+	pc = [self read16:addressAbsolute];
+
+
+	accumulator = 0;
+	x = 0;
+	y = 0;
+	sp = 0xFD;
+
+    status = 0;
+    self.DONT_CARE = 1;
+
+	fetched = 0;
+	addressAbsolute = 0;
+	addressAbsolute = 0;
+
+	cycles = 8;
+}
+
+// Interrupt Request
+- (void)interruptIRQ {
+    // TODO Refactor and understand that
+
+	if(self.I == 0) {
+        [self push16:pc];
+
+        self.I = 1;
+        self.DONT_CARE = 1;
+        self.B = 0;
+
+        [self push:status];
+
+		addressAbsolute = 0xFFFE;
+		pc = [self read16:addressAbsolute];
+
+		cycles = 7;
+	}
+}
+
+- (void)opcodeNOP {
+}
+
 // =============================================================================
 // Illegal Opcodes
-- (NES_u8)opcodeSKB {
-    return 0;
+- (void)opcodeSKB {
 }
 
-- (NES_u8)opcodeIGN {
-    return 0;
+- (void)opcodeIGN {
 }
 
-- (NES_u8)opcodeALR {
-    return 0;
+- (void)opcodeALR {
 }
 
-- (NES_u8)opcodeANC {
-    return 0;
+- (void)opcodeANC {
 }
 
-- (NES_u8)opcodeARR {
-    return 0;
+- (void)opcodeARR {
 }
 
 
-- (NES_u8)opcodeAXS {
-    return 0;
+- (void)opcodeAXS {
 }
 
-- (NES_u8)opcodeLAX {
-    return 0;
+- (void)opcodeLAX {
 }
 
-- (NES_u8)opcodeSAX {
-    return 0;
+- (void)opcodeSAX {
 }
 
-- (NES_u8)opcodeDCP {
-    return 0;
+- (void)opcodeDCP {
 }
 
-- (NES_u8)opcodeISC {
-    return 0;
+- (void)opcodeISC {
 }
 
-- (NES_u8)opcodeRLA {
-    return 0;
+- (void)opcodeRLA {
 }
 
-- (NES_u8)opcodeRRA {
-    return 0;
+- (void)opcodeRRA {
 }
 
-- (NES_u8)opcodeSLO {
-    return 0;
+- (void)opcodeSLO {
 }
 
-- (NES_u8)opcodeSRE {
-    return 0;
+- (void)opcodeSRE {
 }
 
-- (NES_u8)opcodeXAA {
-    return 0;
+- (void)opcodeXAA {
 }
 
-- (NES_u8)opcodeAHX {
-    return 0;
+- (void)opcodeAHX {
 }
 
-- (NES_u8)opcodeSHX {
-    return 0;
+- (void)opcodeSHX {
 }
 
-- (NES_u8)opcodeTAS {
-    return 0;
+- (void)opcodeTAS {
 }
 
-- (NES_u8)opcodeSHY {
-    return 0;
+- (void)opcodeSHY {
 }
 
-- (NES_u8)opcodeLAS {
-    return 0;
+- (void)opcodeLAS {
 }
 
 
@@ -799,8 +1073,9 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 - (CPUState)DEBUGgetCPUState {
     CPUState cpuState;
 
-    cpuState.opcode = opcode;
+    cpuState.elapsedClock = elapsedClock;
     cpuState.cycles = cycles;
+    cpuState.opcode = opcode;
 
     // Status Register
     cpuState.status = status;
@@ -834,7 +1109,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
 - (NSArray*)DEBUGDisassemble {
     NSMutableArray* disassembleArray = [[NSMutableArray alloc]init];
-
+    
     return [disassembleArray copy];
 }
 

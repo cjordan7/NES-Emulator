@@ -10,12 +10,13 @@
 #import "Bus.h"
 #import "../Utils.h"
 
-
 NS_ASSUME_NONNULL_BEGIN
 
 typedef struct {
-    NES_u8 opcode;
+    uint64 elapsedClock;
     NES_u8 cycles;
+
+    NES_u8 opcode;
 
     NES_u8 status;
     BOOL N;
