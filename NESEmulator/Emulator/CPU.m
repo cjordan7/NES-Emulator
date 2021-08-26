@@ -187,6 +187,10 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     return self;
 }
 
+- (void)connectBus:(Bus*)bus {
+    _bus = [[Bus alloc] init:2*1024];
+}
+
 //==============================================================================
 // Utils functions
 
@@ -219,7 +223,6 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
         status &= ~statusBit;
     }
 }
-
 - (void)setStatus {
     status = -1;
 }

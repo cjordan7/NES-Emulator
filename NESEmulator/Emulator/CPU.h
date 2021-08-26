@@ -53,6 +53,8 @@ typedef struct {
 - (CPUState)DEBUGgetCPUState;
 - (NSArray*)DEBUGDisassemble:(int)begin end:(int)end;
 
+- (void)connectBus:(Bus*)bus;
+
 @end
 
 NS_ASSUME_NONNULL_END

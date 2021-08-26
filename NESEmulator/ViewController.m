@@ -10,6 +10,7 @@
 #import "Emulator/FileManager.h"
 #import <SpriteKit/SKTexture.h>
 #import "Utils.h"
+#import "Emulator/PPU.h"
 
 #import "Emulator/CPU.h"
 
@@ -27,6 +28,9 @@
 
 
 @property (nonatomic, strong) CPU* cpu;
+@property (nonatomic, strong) PPU* ppu;
+@property (nonatomic, strong) Bus* ppuBus;
+@property (nonatomic, strong) Bus* cpuBus;
 
 
 // Views for non debug columns
@@ -63,6 +67,10 @@
     [self loadNES];
 
     _cpu = [[CPU alloc] init];
+    _ppu = [[PPU alloc] init];
+
+    _cpuBus  = [[Bus alloc] init:0xFFFF];
+    _ppuBus = [[Bus alloc] init:0x3FFF];
 }
 
 - (void)test {

@@ -17,7 +17,7 @@ typedef struct {
     NES_u8 ppuStatus;
 
     NES_u8 oamaddr;
-    NES_u8 oamdatta;
+    NES_u8 oamdata;
     NES_u8 ppuscroll;
     NES_u8 ppudata;
     NES_u8 oamdma;
