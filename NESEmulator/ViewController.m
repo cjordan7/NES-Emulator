@@ -11,6 +11,8 @@
 #import <SpriteKit/SKTexture.h>
 #import "Utils.h"
 
+#import "Emulator/CPU.h"
+
 @interface ViewController() {
     CGSize skSceneSize;
     uint32_t fullSize;
@@ -22,6 +24,10 @@
 #define BUTTON_SELECT_INDEX 0
 #define BUTTON_START_INDEX 1
 #define BUTTON_PLUS_INDEX 2
+
+
+@property (nonatomic, strong) CPU* cpu;
+
 
 // Views for non debug columns
 @property (nonatomic, strong) NSArray* columnSelStPlus;
@@ -55,6 +61,8 @@
     [self buildAppInterface];
 
     [self loadNES];
+
+    _cpu = [[CPU alloc] init];
 }
 
 - (void)test {

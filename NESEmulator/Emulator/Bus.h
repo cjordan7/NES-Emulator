@@ -15,8 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
     NES_u8 ram[2*1024];
 }
 
-- (NES_u8)cpuRead:(NES_u16)address;
-- (void)cpuWrite:(NES_u16)address value:(NES_u8)value;
+- (NES_u8)read:(NES_u16)address;
+- (void)write:(NES_u16)address value:(NES_u8)value;
 
 @end
 

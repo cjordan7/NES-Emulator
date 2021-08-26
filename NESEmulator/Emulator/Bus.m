@@ -21,11 +21,11 @@
     return self;
 }
 
-- (uint8_t)cpuRead:(uint16_t)address {
+- (uint8_t)read:(uint16_t)address {
     return ram[address];
 }
 
-- (void)cpuWrite:(NES_u16)address value:(NES_u8)value {
+- (void)write:(NES_u16)address value:(NES_u8)value {
     ram[address] = value;
 }
 

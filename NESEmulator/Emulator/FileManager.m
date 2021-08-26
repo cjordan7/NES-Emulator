@@ -36,6 +36,44 @@
                                       encoding:NSUTF8StringEncoding error:nil];
 }
 
+- (ByteArray)readFileBytes:(NSString*)fileName type:(NSString*)type {
+    NSString* path = [[NSBundle mainBundle] pathForResource:fileName ofType:type];
+
+    NSData* data = [NSData dataWithContentsOfFile:path];
+    uint8_t* bytePtr = (NES_u8*)[data bytes];
+    NSInteger size = [data length]/sizeof(NES_u8);
+    ByteArray b = {data, bytePtr, size};
+    return b;
+}
+
+- (NSArray*)getPalette:(NSString*)fileName {
+    ByteArray byteArray = [self readFileBytes:fileName type:@".pal"];
+
+    NSMutableArray* palette = [[NSMutableArray alloc] init];
+
+    // TODO: handle !! byteArray == nil
+    if(byteArray.size > 192) {
+        // TODO: Warning in debug
+        NSLog(@"Palette: Size of byte array (%ld)is bigger than 64.", (long)byteArray.size);
+    }
+
+
+    // NSLog
+    uint32_t color = -1;
+    for (int i = 0 ; i < 64*3; i += 3) {
+        color = 0xFF < (3*8);
+        uint32_t red = byteArray.bytePtr[i] << (0*8);
+        uint32_t green = byteArray.bytePtr[i+1] << 8;
+        uint32_t blue = byteArray.bytePtr[i+2] << (2*8);
+        color |= red | green | blue;
+        NSNumber* i = [NSNumber numberWithUnsignedInt:color];
+        [palette addObject:i];
+    }
+
+    return [palette copy];
+}
+
+
 - (void)writeFileToBundle:(NSString*)fileName content:(NSString*)content {
     NSError* error;
 
@@ -86,7 +124,6 @@
 
         OpcodeWrapper* opcodeWrapper = [[OpcodeWrapper alloc] init:utility];
         [tempReturn addObject: opcodeWrapper];
-        NSLog(@"%@", opcodeWrapper);
     }
 
     return [tempReturn copy];

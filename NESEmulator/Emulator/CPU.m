@@ -88,6 +88,12 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
 
     // Program Counter
     NES_u16 pc;
+
+
+
+
+
+    uint8_t disasembleTest[309];
 }
 
 @property(nonatomic) NES_u8 N; // Negative
@@ -125,6 +131,8 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
 - (instancetype)init {
     if(self = [super init]) {
+        elapsedClock = 0;
+
         opcode = 0;
         cycles = 0;
 
@@ -147,6 +155,34 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
         _opcodeWrappers = [_fileReader getOpcodeWrappers];
         [self nullCheck:_opcodeWrappers name:@"opcodeWrappers"];
+
+
+        uint8_t disasembleTest2[] = {0x20, 0x06, 0x06, 0x20, 0x38, 0x06, 0x20, 0x0d, 0x06, 0x20, 0x2a, 0x06, 0x60, 0xa9, 0x02, 0x85,
+            0x02, 0xa9, 0x04, 0x85, 0x03, 0xa9, 0x11, 0x85, 0x10, 0xa9, 0x10, 0x85, 0x12, 0xa9, 0x0f, 0x85,
+            0x14, 0xa9, 0x04, 0x85, 0x11, 0x85, 0x13, 0x85, 0x15, 0x60, 0xa5, 0xfe, 0x85, 0x00, 0xa5, 0xfe,
+            0x29, 0x03, 0x18, 0x69, 0x02, 0x85, 0x01, 0x60, 0x20, 0x4d, 0x06, 0x20, 0x8d, 0x06, 0x20, 0xc3,
+            0x06, 0x20, 0x19, 0x07, 0x20, 0x20, 0x07, 0x20, 0x2d, 0x07, 0x4c, 0x38, 0x06, 0xa5, 0xff, 0xc9,
+            0x77, 0xf0, 0x0d, 0xc9, 0x64, 0xf0, 0x14, 0xc9, 0x73, 0xf0, 0x1b, 0xc9, 0x61, 0xf0, 0x22, 0x60,
+            0xa9, 0x04, 0x24, 0x02, 0xd0, 0x26, 0xa9, 0x01, 0x85, 0x02, 0x60, 0xa9, 0x08, 0x24, 0x02, 0xd0,
+            0x1b, 0xa9, 0x02, 0x85, 0x02, 0x60, 0xa9, 0x01, 0x24, 0x02, 0xd0, 0x10, 0xa9, 0x04, 0x85, 0x02,
+            0x60, 0xa9, 0x02, 0x24, 0x02, 0xd0, 0x05, 0xa9, 0x08, 0x85, 0x02, 0x60, 0x60, 0x20, 0x94, 0x06,
+            0x20, 0xa8, 0x06, 0x60, 0xa5, 0x00, 0xc5, 0x10, 0xd0, 0x0d, 0xa5, 0x01, 0xc5, 0x11, 0xd0, 0x07,
+            0xe6, 0x03, 0xe6, 0x03, 0x20, 0x2a, 0x06, 0x60, 0xa2, 0x02, 0xb5, 0x10, 0xc5, 0x10, 0xd0, 0x06,
+            0xb5, 0x11, 0xc5, 0x11, 0xf0, 0x09, 0xe8, 0xe8, 0xe4, 0x03, 0xf0, 0x06, 0x4c, 0xaa, 0x06, 0x4c,
+            0x35, 0x07, 0x60, 0xa6, 0x03, 0xca, 0x8a, 0xb5, 0x10, 0x95, 0x12, 0xca, 0x10, 0xf9, 0xa5, 0x02,
+            0x4a, 0xb0, 0x09, 0x4a, 0xb0, 0x19, 0x4a, 0xb0, 0x1f, 0x4a, 0xb0, 0x2f, 0xa5, 0x10, 0x38, 0xe9,
+            0x20, 0x85, 0x10, 0x90, 0x01, 0x60, 0xc6, 0x11, 0xa9, 0x01, 0xc5, 0x11, 0xf0, 0x28, 0x60, 0xe6,
+            0x10, 0xa9, 0x1f, 0x24, 0x10, 0xf0, 0x1f, 0x60, 0xa5, 0x10, 0x18, 0x69, 0x20, 0x85, 0x10, 0xb0,
+            0x01, 0x60, 0xe6, 0x11, 0xa9, 0x06, 0xc5, 0x11, 0xf0, 0x0c, 0x60, 0xc6, 0x10, 0xa5, 0x10, 0x29,
+            0x1f, 0xc9, 0x1f, 0xf0, 0x01, 0x60, 0x4c, 0x35, 0x07, 0xa0, 0x00, 0xa5, 0xfe, 0x91, 0x00, 0x60,
+            0xa6, 0x03, 0xa9, 0x00, 0x81, 0x10, 0xa2, 0x00, 0xa9, 0x01, 0x81, 0x10, 0x60, 0xa2, 0x00, 0xea,
+            0xea, 0xca, 0xd0, 0xfb, 0x60
+        };
+
+        memcpy(disasembleTest, disasembleTest2, 309*sizeof(uint8_t));
+
+        [self DEBUGDisassemble:0 end:309];
+
     }
     return self;
 }
@@ -324,7 +360,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
 - (NES_u8)read16:(NES_u16)address {
     NES_u16 lo = [self read:addressAbsolute];
-	NES_u16 hi = [self read:addressAbsolute+1];
+    NES_u16 hi = [self read:addressAbsolute+1];
 
     return (hi << 8) | lo;
 }
@@ -335,21 +371,21 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 }
 
 - (NES_u8)read:(NES_u16)address {
-    return [self.bus cpuRead:address];
+    return [self.bus read:address];
 }
 
 - (void)write:(NES_u16)address value:(NES_u8)value {
-    [self.bus cpuWrite:address value:value];
+    [self.bus write:address value:value];
 }
 
 - (NES_u8)pop {
-    NES_u8 temp = [self.bus cpuRead:BOTTOM_STACK + sp];
+    NES_u8 temp = [self.bus read:BOTTOM_STACK + sp];
     ++sp;
     return temp;
 }
 
 - (void)push:(NES_u8)value {
-    [self.bus cpuWrite:BOTTOM_STACK + sp value:value];
+    [self.bus write:BOTTOM_STACK + sp value:value];
     --sp;
 }
 
@@ -488,7 +524,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 // ADC - Add with Carry
 - (void)opcodeADC {
     PRINT_OPCODE("");
-//    [self fetch];
+    //    [self fetch];
 
     NES_u16 sum = self.C + accumulator + [self fetch];
 
@@ -503,7 +539,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 // AND - Logical AND
 - (void)opcodeAND {
     PRINT_OPCODE("");
-//    [self fetch];
+    //    [self fetch];
     accumulator = accumulator & [self fetch];
     self.N = [self calculateN:accumulator];
     self.Z = [self calculateZ:accumulator];
@@ -512,7 +548,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 // ASL - Arithmetic Left Shift
 - (void)opcodeASL {
     PRINT_OPCODE("");
-//    [self fetch];
+    //    [self fetch];
 
     NES_u16 shift = [self fetch] << 1;
 
@@ -810,7 +846,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 - (void)opcodePHP {
     [self push:status | self.DONT_CARE | self.B];
     self.B = 0;
-	self.DONT_CARE = 0;
+    self.DONT_CARE = 0;
 }
 
 // PLA - Pull Accumulator
@@ -831,7 +867,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 - (void)opcodeROL {
     [self fetch];
 
-	uint16_t temp = (fetched << 1) | self.C;
+    uint16_t temp = (fetched << 1) | self.C;
     self.N = [self calculateN:temp];
     self.Z = [self calculateZ:temp];
     self.C = [self calculateC:temp];
@@ -843,7 +879,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 - (void)opcodeROR {
     [self fetch];
 
-	uint16_t temp = (self.C << 7) | (fetched >> 1);
+    uint16_t temp = (self.C << 7) | (fetched >> 1);
 
     self.N = [self calculateN:temp];
     self.Z = [self calculateZ:temp];
@@ -854,17 +890,17 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
 // RTI - Return from Interrupt
 - (void)opcodeRTI {
-	status = [self pop];
+    status = [self pop];
 
     status &= ~B_BIT;
-	status &= ~DONT_CARE_BIT;
+    status &= ~DONT_CARE_BIT;
 
-	pc = [self pop16];
+    pc = [self pop16];
 }
 
 // RTS - Return from Subroutine
 - (void)opcodeRTS {
-	pc = [self pop16];
+    pc = [self pop16];
 }
 
 // SBC - Subtract with Carry
@@ -955,35 +991,35 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     addressAbsolute = 0xFFFA;
     pc = [self read16:addressAbsolute];
 
-	cycles = 8;
+    cycles = 8;
 }
 
 - (void)powerUp {
-	addressAbsolute = 0xFFFC;
+    addressAbsolute = 0xFFFC;
 
-	pc = [self read16:addressAbsolute];
+    pc = [self read16:addressAbsolute];
 
 
-	accumulator = 0;
-	x = 0;
-	y = 0;
-	sp = 0xFD;
+    accumulator = 0;
+    x = 0;
+    y = 0;
+    sp = 0xFD;
 
     status = 0;
     self.DONT_CARE = 1;
 
-	fetched = 0;
-	addressAbsolute = 0;
-	addressAbsolute = 0;
+    fetched = 0;
+    addressAbsolute = 0;
+    addressAbsolute = 0;
 
-	cycles = 8;
+    cycles = 8;
 }
 
 // Interrupt Request
 - (void)interruptIRQ {
     // TODO Refactor and understand that
 
-	if(self.I == 0) {
+    if(self.I == 0) {
         [self push16:pc];
 
         self.I = 1;
@@ -992,11 +1028,11 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
         [self push:status];
 
-		addressAbsolute = 0xFFFE;
-		pc = [self read16:addressAbsolute];
+        addressAbsolute = 0xFFFE;
+        pc = [self read16:addressAbsolute];
 
-		cycles = 7;
-	}
+        cycles = 7;
+    }
 }
 
 - (void)opcodeNOP {
@@ -1083,7 +1119,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     cpuState.V = self.V;
     cpuState.B = self.B;
     cpuState.D = self.D;
-    cpuState.I = self.I;
+    cpuState.I_ = self.I;
     cpuState.Z = self.Z;
     cpuState.C = self.C;
 
@@ -1107,10 +1143,105 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     return cpuState;
 }
 
-- (NSArray*)DEBUGDisassemble {
+- (NSArray*)DEBUGDisassemble:(int)begin end:(int)end {
     NSMutableArray* disassembleArray = [[NSMutableArray alloc]init];
-    
+
+    uint32_t i = 0;
+    NSString* instruction = nil;
+    NSString* addressingMode = nil;
+    NSString* comment = nil;
+
+    uint32_t index = 0;
+
+    NES_u8 value = 0;
+    while(i < end) {
+        index = disasembleTest[i];
+        OpcodeWrapper* opcodeWrapper = _opcodeWrappers[index];
+        addressingMode = opcodeWrapper.addressingModeName;
+
+        // Reading opcode
+        instruction = opcodeWrapper.name;
+        instruction = [instruction stringByAppendingString:@" "];
+        // Ready to read next element
+        ++i;
+
+        comment = @" ; The addressing mode is: ";
+        comment = [comment stringByAppendingFormat:@"%@", addressingMode];
+
+        // TODO: Add comments for each instruction ?
+        if([addressingMode isEqual:@"Accumulator"]) {
+            instruction = [instruction stringByAppendingString:@" A"];
+        } else if([addressingMode isEqual:@"Implied"]) {
+            instruction = [instruction stringByAppendingString:@""];
+        } else if([addressingMode isEqual:@"Immediate"]) {
+            value = disasembleTest[i];
+            ++i;
+            instruction = [instruction stringByAppendingFormat:@"#$%02x", value];
+        } else if([addressingMode isEqual:@"Relative"]) {
+            value = disasembleTest[i];
+            ++i;
+            instruction = [instruction stringByAppendingFormat:@"$%04x", (value+i)];
+        } else if([addressingMode isEqual:@"Absolute"]) {
+            value = disasembleTest[i];
+            ++i;
+            value = (disasembleTest[i] << 8) + value;
+            ++i;
+
+            instruction = [instruction stringByAppendingFormat:@"$%04x", value];
+        } else if([addressingMode isEqual:@"Absolute-X"]) {
+            value = disasembleTest[i];
+            ++i;
+            value = (disasembleTest[i] << 8) + value;
+            ++i;
+
+            instruction = [instruction stringByAppendingFormat:@"$%04x, X", value];
+        } else if([addressingMode isEqual:@"Absolute-Y"]) {
+            value = disasembleTest[i];
+            ++i;
+            value = (disasembleTest[i] << 8) + value;
+            ++i;
+
+            instruction = [instruction stringByAppendingFormat:@"$%04x, Y", value];
+        } else if([addressingMode isEqual:@"Indirect"]) {
+            value = disasembleTest[i];
+            ++i;
+            value = (disasembleTest[i] << 8) + value;
+            ++i;
+
+            instruction = [instruction stringByAppendingFormat:@"($%04x)", value];
+        } else if([addressingMode isEqual:@"Indirect-X"]) {
+            value = disasembleTest[i];
+            ++i;
+
+            instruction = [instruction stringByAppendingFormat:@"($%02x)", value];
+        } else if([addressingMode isEqual:@"Indirect-Y"]) {
+            value = disasembleTest[i];
+            ++i;
+
+            instruction = [instruction stringByAppendingFormat:@"($%02x)", value];
+        } else if([addressingMode isEqual:@"Zero Page"]) {
+            value = disasembleTest[i];
+            ++i;
+
+            instruction = [instruction stringByAppendingFormat:@"$%02x", value];
+        } else if([addressingMode isEqual:@"Zero Page-X"]) {
+            value = disasembleTest[i];
+            ++i;
+
+            instruction = [instruction stringByAppendingFormat:@"$%02x", value];
+        } else if([addressingMode isEqual:@"Zero Page-Y"]) {
+            value = disasembleTest[i];
+            ++i;
+
+            instruction = [instruction stringByAppendingFormat:@"$%02x", value];
+        }
+
+        // TODO: Comments
+//        instruction = [instruction stringByAppendingString:comment];
+        [disassembleArray addObject:instruction];
+    }
+
+
     return [disassembleArray copy];
 }
-
 @end

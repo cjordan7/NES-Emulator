@@ -8,6 +8,12 @@
 #import "DebugWindowController.h"
 
 #import <AppKit/NSTextFieldCell.h>
+#import <SpriteKit/SKView.h>
+#import <SpriteKit/SKScene.h>
+#import <SpriteKit/SKTexture.h>
+#import <SpriteKit/SKSpriteNode.h>
+
+#import "Emulator/FileManager.h"
 
 @interface NSTextFieldCell(Centered)
 @end
@@ -30,6 +36,8 @@
 @end
 
 @interface DebugWindowController ()
+@property(nonatomic, strong) FileManager* fileManager;
+
 
 // First columns
 @property(nonatomic, strong) NSArray* arrayRegisters;
@@ -47,18 +55,21 @@
 
 @end
 
+#define SAMPLE_WIDTH 16*25
+#define SAMPLE_HEIGHT 4*25
+
 @implementation DebugWindowController
 
 - (void)showWindow:(id)sender {
     [super showWindow:sender];
 
     _view = self.window.contentView;
+    _fileManager = [[FileManager alloc] init];
 
     [self createInterface];
 }
 
 - (void)createInterface {
-//    NSGridView* gridView = [self createGridView:16 h:0x07F];
     NSGridView* gridView = [self createGridStrings:16 h:0xFFF];
     NSScrollView* scrollView = [[NSScrollView alloc] initWithFrame:
                                 NSMakeRect(10, 10,
@@ -68,10 +79,44 @@
     [scrollView setDocumentView:gridView];
 
     [self addSubview:scrollView];
+
+    NSArray* loadedPixels = [_fileManager getPalette:@"nespalette"];
+    uint32_t* pixels = buffedPixels(loadedPixels, 16, 4, 25, 25);
+    NSStackView* s = [self createSKScene:pixels];
+    [s setFrame:NSMakeRect(200, 200, SAMPLE_WIDTH, SAMPLE_HEIGHT)];
+    [self addSubview:s];
 }
 
 - (void)addSubview:(nonnull NSView*)view {
     [self.view addSubview:view];
+}
+
+- (NSStackView*)createSKScene:(void*)array {
+    NSData* data = [NSData dataWithBytes:array
+                                  length:SAMPLE_HEIGHT*SAMPLE_WIDTH*sizeof(uint32_t)];
+    CGSize size;
+    size.height = SAMPLE_HEIGHT;
+    size.width = SAMPLE_WIDTH;
+
+    SKScene* scene = [[SKScene alloc] initWithSize:size];
+    SKTexture* texture = [SKTexture textureWithData:data size:size flipped:YES];
+
+    CGPoint p = {0.5, 0.5};
+    scene.anchorPoint = p;
+
+    SKSpriteNode* node = [SKSpriteNode spriteNodeWithTexture:texture];
+    [scene addChild:node];
+
+    NSStackView* stack = [[NSStackView alloc] init];
+
+    SKView* view = [[SKView alloc] initWithFrame:NSMakeRect(0, 0,
+                                                            SAMPLE_WIDTH,
+                                                            SAMPLE_HEIGHT)];
+    [view presentScene:scene];
+
+    [stack addSubview:view];
+
+    return stack;
 }
 
 - (NSGridView*)createGridStrings:(int)w h:(int)h {
@@ -102,7 +147,6 @@
         }
 
         [textField setStringValue:string];
-        //textField.stringValue = string;
         if(i == 0) {
             [textField setBezeled:NO];
             [textField setDrawsBackground:NO];
@@ -117,11 +161,6 @@
         [gridView addRowWithViews:[[NSArray arrayWithObject:textField] copy]];
 
         NSGridRow* gridRow = [gridView rowAtIndex:i];
-//        for(int k = 0; k < 16; ++k) {
-//            NSGridCell* cell = [gridRow cellAtIndex:k];
-//            [cell.contentView setWantsLayer:YES];
-////            cell.contentView.layer.backgroundColor = NSColor.brownColor.CGColor;
-//        }
 
         gridRow.height = 20;
     }
@@ -172,19 +211,12 @@
             [textField setEditable:NO];
             [textField setSelectable:NO];
 
-//            textField.drawsBackground = YES;
-
             [array addObject:textField];
         }
 
         [gridView addRowWithViews:[array copy]];
 
         NSGridRow* gridRow = [gridView rowAtIndex:i];
-//        for(int k = 0; k < 16; ++k) {
-//            NSGridCell* cell = [gridRow cellAtIndex:k];
-//            [cell.contentView setWantsLayer:YES];
-////            cell.contentView.layer.backgroundColor = NSColor.brownColor.CGColor;
-//        }
 
         gridRow.height = 20;
     }
@@ -194,8 +226,6 @@
     gridView.translatesAutoresizingMaskIntoConstraints = NO;
 
     gridView.wantsLayer = YES;
-//    gridView.layer.backgroundColor = NSColor.redColor.CGColor;
-
     [gridView setContentHuggingPriority:600 forOrientation: NSLayoutConstraintOrientationVertical];
     [gridView setContentHuggingPriority:600 forOrientation: NSLayoutConstraintOrientationHorizontal];
 

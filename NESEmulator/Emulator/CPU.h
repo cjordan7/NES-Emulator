@@ -23,7 +23,7 @@ typedef struct {
     BOOL V;
     BOOL B;
     BOOL D;
-    BOOL I;
+    BOOL I_;
     BOOL Z;
     BOOL C;
 
@@ -51,7 +51,7 @@ typedef struct {
 
 
 - (CPUState)DEBUGgetCPUState;
-- (NSArray*)DEBUGDisassemble;
+- (NSArray*)DEBUGDisassemble:(int)begin end:(int)end;
 
 @end
 

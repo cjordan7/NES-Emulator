@@ -36,7 +36,8 @@ typedef struct {
 @property(nonatomic, assign, readonly) NES_u8 numberOfCycles;
 @property(nonatomic, assign, readonly) NES_u8 additionalCycles;
 
--(instancetype)init:(Utility)utility;
+
+- (instancetype)init:(Utility)utility;
 @end
 
 NS_ASSUME_NONNULL_END

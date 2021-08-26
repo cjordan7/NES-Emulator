@@ -7,7 +7,7 @@ NESEmulator.xcodeproj
 xcuserdata/
 build/
 
-Resources/"NES Palettes"/
+NESEmulator/Resources/
 
 NESEmulator.entitlements
 *Info.plist
