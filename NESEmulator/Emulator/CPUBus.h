@@ -6,10 +6,13 @@
 //
 
 #import "Bus.h"
+#import "PPU.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface CPUBus : Bus
+
+@property(nonatomic, strong) PPU* ppu;
 
 @end
 

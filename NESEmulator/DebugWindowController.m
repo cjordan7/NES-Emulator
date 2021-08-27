@@ -15,6 +15,8 @@
 
 #import "Emulator/FileManager.h"
 
+#import "Views/DataGrid.h"
+
 @interface NSTextFieldCell(Centered)
 @end
 
@@ -52,6 +54,8 @@
 
 @property(nonatomic, strong) NSView* view;
 
+@property(nonatomic, strong) DataGrid* dataGrid;
+
 
 @end
 
@@ -65,25 +69,19 @@
 
     _view = self.window.contentView;
     _fileManager = [[FileManager alloc] init];
+    _dataGrid = [[DataGrid alloc] initWithFrame: NSMakeRect(0, 0, 415, 16*20)
+                                              h: 0xFFF];
 
     [self createInterface];
 }
 
 - (void)createInterface {
-    NSGridView* gridView = [self createGridStrings:16 h:0xFFF];
-    NSScrollView* scrollView = [[NSScrollView alloc] initWithFrame:
-                                NSMakeRect(10, 10,
-                                           gridView.frame.size.width, 16*10)];
-
-
-    [scrollView setDocumentView:gridView];
-
-    [self addSubview:scrollView];
+    [self addSubview:self.dataGrid];
 
     NSArray* loadedPixels = [_fileManager getPalette:@"nespalette"];
     uint32_t* pixels = buffedPixels(loadedPixels, 16, 4, 25, 25);
     NSStackView* s = [self createSKScene:pixels];
-    [s setFrame:NSMakeRect(200, 200, SAMPLE_WIDTH, SAMPLE_HEIGHT)];
+    [s setFrame:NSMakeRect(500, 200, SAMPLE_WIDTH, SAMPLE_HEIGHT)];
     [self addSubview:s];
 }
 
@@ -133,20 +131,31 @@
         for(int j = 0; j < w+1; ++j) {
             if(j == 0) {
                 if(i != 0) {
-                    string = [string stringByAppendingFormat:@" %04X: ", (i*16+j)];
+                    string = [string stringByAppendingFormat:@" %04X: ", ((i-1)*16+j)];
                 } else {
                     string = [string stringByAppendingFormat:@"       "];
                 }
             } else {
                 if(i == 0) {
-                    string = [string stringByAppendingFormat:@" %02X", i*16+j];
+                    string = [string stringByAppendingFormat:@" %02X", i*16+j-1];
                 } else {
-                    string = [string stringByAppendingFormat:@" %02X", (i*16+j)%0xFF];
+                    string = [string stringByAppendingFormat:@" %02X", 0];
                 }
             }
         }
 
-        [textField setStringValue:string];
+        if(i == 5) {
+            NSRange range;
+            range.length = [string length];
+            range.location = 0;
+            NSMutableAttributedString* mAS = [[NSMutableAttributedString alloc] initWithString:string];
+            NSColor* color = [NSColor colorWithSRGBRed:200 green:200 blue:200 alpha:1];
+            [mAS addAttribute:NSBackgroundColorAttributeName value:color range:range];
+
+            textField.attributedStringValue = mAS;
+        } else {
+            [textField setStringValue:string];
+        }
         if(i == 0) {
             [textField setBezeled:NO];
             [textField setDrawsBackground:NO];
@@ -154,9 +163,9 @@
             [textField setBezeled:NO];
             [textField setDrawsBackground:NO];
         }
+
         [textField setEditable:NO];
         [textField setSelectable:NO];
-
 
         [gridView addRowWithViews:[[NSArray arrayWithObject:textField] copy]];
 

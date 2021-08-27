@@ -9,7 +9,6 @@
 #import "../Utils.h"
 
 @interface Bus()
-
 @end
 
 @implementation Bus
@@ -21,10 +20,6 @@
 
     return self;
 
-}
-
-- (void)connectBus:(Bus*)bus {
-    self.connectedBus = bus;
 }
 
 - (void)dealloc {
@@ -39,12 +34,8 @@
     ram[address] = value;
 }
 
-- (uint8_t)readConnectedBus:(uint16_t)address {
-    return [self.connectedBus read:address];
-}
-
-- (void)writeConnectedBus:(NES_u16)address value:(NES_u8)value {
-    [self.connectedBus write:address value:value];
+- (void)insertCartridge:(Cartridge*)cartridge {
+    self.cartridge = cartridge;
 }
 
 @end
