@@ -139,11 +139,36 @@
 }
 
 - (NES_u8)read:(NES_u16)address {
-    return 0;
+    uint32_t mapped = [self.mapper mapAddress:address];
+
+    if(0x0000 < address && address < 0x1FFF) {
+        // PPU
+        return chrMemory[mapped];
+    } else if(0x8000 <= address && address <= 0xFFFF) {
+        // CPU
+        return pgrROM[mapped];
+    }
+
+    NSLog(@"This should not happen");
+    return -1;
 }
 
 - (void)write:(NES_u16)address value:(NES_u8)value {
-    // TODO: Some Mappers
+    if(!self.hasRAM) {
+        assert(false);
+        // TODO: Handle error. Or throw exception
+        NSLog(@"Error");
+    }
+
+    uint32_t mapped = [self.mapper mapAddress:address];
+
+    if(0x0000 < address && address < 0x1FFF) {
+        // PPU
+        chrMemory[mapped] = value;
+    } else if(0x8000 <= address && address <= 0xFFFF) {
+        // CPU
+        pgrROM[mapped] = value;
+    }
 }
 
 - (NES_u8*)getCHRMemory {

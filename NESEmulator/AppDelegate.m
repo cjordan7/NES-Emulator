@@ -33,12 +33,6 @@
     [main setTitle:@"NES Emulator"];
     main.styleMask &= ~NSWindowStyleMaskResizable;
     [main setFrame:NSMakeRect(50, 100, APP_SIZE_WIDTH, APP_SIZE_HEIGHT) display:YES];
-
-//    CGSize fixedSize;
-//    fixedSize.height = APP_SIZE_HEIGHT;
-//    fixedSize.width = APP_SIZE_WIDTH;
-//    [main setMinSize:fixedSize];
-//    [main setMaxSize:fixedSize];
 }
 
 - (void)createDebugWindow {

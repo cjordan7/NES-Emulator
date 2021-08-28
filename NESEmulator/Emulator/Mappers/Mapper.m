@@ -10,8 +10,12 @@
 
 @implementation Mapper
 
-- (NES_u16)mapAddress:(NES_u16)address {
-    return 0;
+- (instancetype)initWithBanks:(uint32_t)numberBanks {
+    self->numberBanks = numberBanks;
+}
+
+- (uint32_t)mapAddress:(NES_u16)address {
+    return address;
 }
 
 @end

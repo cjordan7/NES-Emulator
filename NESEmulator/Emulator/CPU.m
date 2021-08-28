@@ -12,6 +12,7 @@
 #import "../Utils.h"
 #import "FileManager.h"
 #import "OpcodeWrapper.h"
+#import "../Container/Queue.h"
 
 #define BOTTOM_STACK 0x0100
 
@@ -90,9 +91,7 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
     NES_u16 pc;
 
 
-
-
-
+    // TODO: Remove line RAM
     uint8_t disasembleTest[309];
 }
 
@@ -105,9 +104,11 @@ __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__);
 @property(nonatomic) NES_u8 Z; // Zero
 @property(nonatomic) NES_u8 C; // Carry
 
-@property(nonatomic, strong) FileManager* fileReader; // To read opcodes
+// To read opcodes
+@property(nonatomic, strong) FileManager* fileReader;
 
-@property(nonatomic, strong, readonly) NSArray* opcodeWrappers; // To read opcodes
+// To read opcodes
+@property(nonatomic, strong, readonly) NSArray* opcodeWrappers;
 
 @end
 
@@ -121,13 +122,6 @@ static const NES_u8 D_BIT = 1 << 3; // Decimal (use BCD for arithmetics)
 static const NES_u8 I_BIT = 1 << 2; // Interrupt (IRQ disable)
 static const NES_u8 Z_BIT = 1 << 1; // Zero
 static const NES_u8 C_BIT = 1 << 0; // Carry
-//static const int V = 6; // Overflow
-//static const int DONT_CARE = 5; // Ignored
-//static const int B = 4; // Break
-//static const int D = 3; // Decimal (use BCD for arithmetics)
-//static const int I = 2; // Interrupt (IRQ disable)
-//static const int Z = 1; // Zero
-//static const int C = 0; // Carry
 
 - (instancetype)init {
     if(self = [super init]) {
@@ -1246,5 +1240,81 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
 
     return [disassembleArray copy];
+}
+
+- (NSArray*)calculateReachableInstructions:(NES_u8*)arrayInstruction count:(NES_u8)count {
+    NSMutableArray* isReachableArray = [[NSMutableArray alloc] init];
+    NSMutableArray* stack = [[NSMutableArray alloc] init];
+
+    for(int j = 0; j < count; ++j) {
+        [isReachableArray addObject:[[NSNumber alloc] initWithBool:NO]];
+    }
+
+    OpcodeWrapper* opcodeWrapper;
+    // No queue in the standard library
+    Queue* queue = [[Queue alloc] init];
+    int i = 0;
+    while(i < count) {
+        if([isReachableArray[i] boolValue]) {
+            i = [(NSNumber*)[queue pop] intValue];
+        }
+
+        opcodeWrapper = _opcodeWrappers[arrayInstruction[i]];
+        //        opcodeWrapper = _opcodeWrappers[arrayInstruction[i]];
+        for(int k = 0; k <= opcodeWrapper.lengthInBytes; ++k) {
+            isReachableArray[i+k] = [[NSNumber alloc] initWithBool:YES];
+        }
+
+        if([self isBranch:opcodeWrapper.name]) {
+            [queue push:[NSNumber numberWithInt:i]];
+
+            i += [self getNextAddressUsingAddrMode:opcodeWrapper.addressingModeName];
+        } else if([opcodeWrapper.name isEqual:@"JUMP"]) {
+            i = [self getNextAddressUsingAddrMode:opcodeWrapper.addressingModeName];
+        } else if([opcodeWrapper.name isEqual:@"JSR"]) {
+            i = [self getNextAddressUsingAddrMode:opcodeWrapper.addressingModeName];
+            [stack addObject:[NSNumber numberWithInt:i]];
+            // TODO: We may come back or we may not
+        }else if([opcodeWrapper.name isEqual:@"RTS"]) {
+            i = [(NSNumber*)[stack lastObject] intValue];
+            [stack removeLastObject];
+        }
+
+//        opcodeWrapper = _opcodeWrappers[arrayInstruction[i]];
+        for(int k = 0; k <= opcodeWrapper.lengthInBytes; ++k) {
+            isReachableArray[i+k] = [[NSNumber alloc] initWithBool:YES];
+        }
+
+        i += opcodeWrapper.lengthInBytes;
+
+        if(i == count && [queue size] == 0) {
+            i = [(NSNumber*)[queue pop] intValue];
+        }
+    }
+
+
+
+    return isReachableArray;
+}
+
+- (BOOL)isBranch:(NSString*)string {
+    NSSet* branches = [[NSSet alloc] initWithObjects:
+                       @"BCC", @"BCS", @"BEQ",
+                       @"BMI", @"BNE", @"BPL",
+                       @"BVC", @"BVS", nil];
+
+    for(NSString* string in branches) {
+        if([string isEqual:string]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+- (int)getNextAddressUsingAddrMode:(NSString*)addressingMode {
+    
+
+    return -1;
 }
 @end

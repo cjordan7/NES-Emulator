@@ -10,7 +10,7 @@
 @implementation CPUBus
 
 -(NES_u8)read:(NES_u16)address {
-    if(0x4020 <= address && address <= 0xFFFF) {
+    if(0x8000 <= address && address <= 0xFFFF) {
         return [self.cartridge read:address];
     } else {
         return [super read:address];
@@ -33,7 +33,7 @@
         }
 
         [self.ppu notify:0x08];
-    } else if(0x4020 <= address && address <= 0xFFFF) {
+    } else if(0x8000 <= address && address <= 0xFFFF) {
         // TODO: Error most of the time
 
         NSLog(@"Warning. This may not happen. Check if there is a RAM");
