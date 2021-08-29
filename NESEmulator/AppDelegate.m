@@ -8,6 +8,9 @@
 #import "AppDelegate.h"
 #import "Utils.h"
 #import "DebugWindowController.h"
+#import "Emulator/Cartridge.h"
+
+#import "ViewController.h"
 
 @interface AppDelegate ()
 
@@ -19,9 +22,10 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Insert code here to initialize your application
 
+    self.cartridge = [[Cartridge alloc] initName:@"name" type:@".nes"];
+
     [self createMainWindow];
     [self createDebugWindow];
-
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
@@ -33,20 +37,17 @@
     [main setTitle:@"NES Emulator"];
     main.styleMask &= ~NSWindowStyleMaskResizable;
     [main setFrame:NSMakeRect(50, 100, APP_SIZE_WIDTH, APP_SIZE_HEIGHT) display:YES];
+
+    [(ViewController*)main.contentViewController loadNES];
 }
 
 - (void)createDebugWindow {
-    NSWindowStyleMask mask = NSWindowStyleMaskTitled;
-    mask |= NSWindowStyleMaskMiniaturizable;
-    mask |= NSWindowStyleMaskClosable;
-    NSRect rect = NSMakeRect(20, 20, 1000, 400);
-    NSWindow* window = [[NSWindow alloc] initWithContentRect:rect styleMask: mask backing:NSBackingStoreBuffered defer:NO];
-    _dWC = [[DebugWindowController alloc] initWithWindow:window];
+    _dWC = [[DebugWindowController alloc] init];
 
     [_dWC.window setTitle:@"NES Debugger"];
     [_dWC showWindow:self];
 
-    NSLog(@"%@", _dWC.window.contentView);
+    [_dWC loadNES];
 }
 
 @end

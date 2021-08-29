@@ -7,11 +7,13 @@
 
 #import <Cocoa/Cocoa.h>
 #import <SpriteKit/SKScene.h>
+#import "NESLoadable.h"
 
-
-@interface ViewController : NSViewController
+@interface ViewController : NSViewController<NESLoadable>
 
 @property(nonatomic, strong) SKScene* scene;
+
+- (void)loadNES;
 
 @end
 

@@ -6,6 +6,7 @@
 //
 
 #import "ViewController.h"
+#import "AppDelegate.h"
 
 #import "Emulator/FileManager.h"
 #import <SpriteKit/SKTexture.h>
@@ -13,6 +14,11 @@
 #import "Emulator/PPU.h"
 
 #import "Emulator/CPU.h"
+#import "CPUBus.h"
+#import "PPUBus.h"
+
+
+#import "Queue.h"
 
 @interface ViewController() {
     CGSize skSceneSize;
@@ -63,14 +69,30 @@
     [self buildABButtons];
 
     [self buildAppInterface];
+}
 
-    [self loadNES];
-
+- (void)loadNES {
     _cpu = [[CPU alloc] init];
     _ppu = [[PPU alloc] init];
 
-    _cpuBus  = [[Bus alloc] init:0xFFFF];
-    _ppuBus = [[Bus alloc] init:0x3FFF];
+    _cpuBus  = [[CPUBus alloc] init:0xFFFF];
+    [_cpu connectBus:_cpuBus];
+
+    _ppuBus = [[PPUBus alloc] init:0x3FFF];
+    [_ppu connectPPUBus:_ppuBus];
+
+    AppDelegate* ap = (AppDelegate*)[[NSApplication sharedApplication] delegate];
+    Cartridge* temp = ap.cartridge;
+
+    [_cpuBus insertCartridge:temp];
+    [_ppuBus insertCartridge:temp];
+
+    [self.cpu DEBUGDisassemble:0 end:0xFFFF-0xC000
+                         array:[temp getPGRRom] size:0xFFFF-0xC000];
+}
+
+- (void)renderScreen {
+
 }
 
 - (void)test {
@@ -160,16 +182,12 @@
     [self.view addSubview:plusSelectStartButtons];
 
     NSStackView* image = _columnTwo;
-    NSLog(@"%f", image.frame.origin.x);
-    NSLog(@"%f", image.frame.origin.y);
 
     [self.view addSubview:image];
 
     NSStackView* abButtons = _columnThree;
     [self.view addSubview:abButtons];
-    NSLog(@"%f", abButtons.frame.origin.x);
-    NSLog(@"%f", abButtons.frame.origin.y);
-
+    
     NSDictionary* dictio = @{
         @"pSB": plusSelectStartButtons,
         @"image": image,
@@ -209,14 +227,6 @@
                            views:dictio];
 
     [self.view addConstraints:horizontal];
-}
-
-
-- (void)loadNES {
-}
-
-- (void)renderScreen {
-
 }
 
 @end

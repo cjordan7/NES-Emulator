@@ -123,7 +123,6 @@
         }
             
         temp[17] = @"\n";
-        NSLog(@"%lu", [temp componentsJoinedByString: @" "].length);
         [array addObject:[temp componentsJoinedByString: @" "]];
     }
 

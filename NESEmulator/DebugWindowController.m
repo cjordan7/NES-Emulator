@@ -5,6 +5,9 @@
 //  Created by Cosme Jordan on 25.08.21.
 //
 
+
+#import "AppDelegate.h"
+
 #import "DebugWindowController.h"
 
 #import <AppKit/NSTextFieldCell.h>
@@ -16,6 +19,8 @@
 #import "Emulator/FileManager.h"
 
 #import "Views/DataGrid.h"
+
+#import "Emulator/Cartridge.h"
 
 @interface NSTextFieldCell(Centered)
 @end
@@ -31,7 +36,6 @@
 }
 
 - (void) drawInteriorWithFrame:(NSRect)cFrame inView:(NSView*)cView {
-    NSLog(@"Callelled........");
     [super drawInteriorWithFrame:[self titleRectForBounds:cFrame] inView:cView];
 }
 
@@ -64,6 +68,20 @@
 
 @implementation DebugWindowController
 
+- (instancetype)init {
+    return [super initWithWindowNibName:@""];
+}
+
+- (void)loadWindow {
+    NSWindowStyleMask mask = NSWindowStyleMaskTitled;
+    mask |= NSWindowStyleMaskMiniaturizable;
+    mask |= NSWindowStyleMaskClosable;
+    NSRect rect = NSMakeRect(20, 20, 1000, 400);
+    NSWindow* window = [[NSWindow alloc] initWithContentRect:rect styleMask: mask backing:NSBackingStoreBuffered defer:NO];
+
+    self.window = window;
+}
+
 - (void)showWindow:(id)sender {
     [super showWindow:sender];
 
@@ -73,6 +91,23 @@
                                               h: 0xFFF];
 
     [self createInterface];
+}
+
+- (void)loadNES {
+    AppDelegate* ap = (AppDelegate*)[[NSApplication sharedApplication] delegate];
+    Cartridge* temp = ap.cartridge;
+
+    NES_u8* pgrROM = [temp getPGRRom];
+
+    for(int i = 0; i < 10; ++i) {
+        printf("%d ", pgrROM[i]);
+    }
+
+    NES_u8 full[0xFFFF];
+    memset(full, 0, 16*0xFFF*sizeof(NES_u8));
+
+    memcpy(full+0x8000, pgrROM, (0xFFFF-0x8000)*sizeof(NES_u8));
+    [_dataGrid updateWitData:full];
 }
 
 - (void)createInterface {

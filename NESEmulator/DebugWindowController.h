@@ -6,10 +6,13 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "NESLoadable.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface DebugWindowController : NSWindowController
+@interface DebugWindowController : NSWindowController<NESLoadable>
+
+- (void)loadNES;
 
 @end
 

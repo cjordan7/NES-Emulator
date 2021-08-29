@@ -11,8 +11,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface Queue : NSObject
 
-- (void)push:(id)element;
-- (id)pop;
+- (void)push:(uint32_t)element;
+- (uint32_t)pop;
 - (uint32_t)size;
 
 @end

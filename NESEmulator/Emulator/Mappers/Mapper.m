@@ -9,9 +9,12 @@
 #import "../../Utils.h"
 
 @implementation Mapper
-
 - (instancetype)initWithBanks:(uint32_t)numberBanks {
-    self->numberBanks = numberBanks;
+    if(self = [super init]) {
+        self->numberBanks = numberBanks;
+    }
+
+    return self;
 }
 
 - (uint32_t)mapAddress:(NES_u16)address {

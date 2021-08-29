@@ -7,7 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import "ReadWriteProtocol.h"
-#import "PPU.h"
+#import "Mirroring.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -17,7 +17,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly, getter=hasRAM) BOOL hasRAM;
 @property(nonatomic, readonly, getter=isValid) BOOL isValid;
 
+@property(nonatomic) uint32_t prgROMSize;
+@property(nonatomic) uint32_t chrSize;
 
+- (instancetype)init __attribute((unavailable("A cartridge always needs a file !")));
 
 - (instancetype)initName:(NSString*)name type:(NSString*)type;
 

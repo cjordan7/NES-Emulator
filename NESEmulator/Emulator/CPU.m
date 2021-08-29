@@ -175,14 +175,14 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
         memcpy(disasembleTest, disasembleTest2, 309*sizeof(uint8_t));
 
-        [self DEBUGDisassemble:0 end:309];
+//        [self DEBUGDisassemble:0 end:309];
 
     }
     return self;
 }
 
 - (void)connectBus:(Bus*)bus {
-    _bus = [[Bus alloc] init:2*1024];
+    _bus = bus;
 }
 
 //==============================================================================
@@ -355,9 +355,9 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 //==============================================================================
 // Read and Write functions
 
-- (NES_u8)read16:(NES_u16)address {
-    NES_u16 lo = [self read:addressAbsolute];
-    NES_u16 hi = [self read:addressAbsolute+1];
+- (NES_u16)read16:(NES_u16)address {
+    NES_u16 lo = [self read:address];
+    NES_u16 hi = [self read:address+1];
 
     return (hi << 8) | lo;
 }
@@ -996,7 +996,6 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
     pc = [self read16:addressAbsolute];
 
-
     accumulator = 0;
     x = 0;
     y = 0;
@@ -1006,7 +1005,6 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     self.DONT_CARE = 1;
 
     fetched = 0;
-    addressAbsolute = 0;
     addressAbsolute = 0;
 
     cycles = 8;
@@ -1051,7 +1049,6 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
 
 - (void)opcodeARR {
 }
-
 
 - (void)opcodeAXS {
 }
@@ -1140,19 +1137,24 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     return cpuState;
 }
 
-- (NSArray*)DEBUGDisassemble:(int)begin end:(int)end {
+- (NSArray*)DEBUGDisassemble:(int)begin end:(int)end
+                       array:(NES_u8*)array size:(uint32_t)size {
     NSMutableArray* disassembleArray = [[NSMutableArray alloc]init];
 
-    uint32_t i = 0;
+    pc = ([self read16:0xFFFC]);
+    pc -= -0x8000;
+    NSArray* a = [self calculateReachableInstructions:array start:pc%size count:size];
+
+    uint32_t i = pc;
     NSString* instruction = nil;
     NSString* addressingMode = nil;
     NSString* comment = nil;
 
     uint32_t index = 0;
 
-    NES_u8 value = 0;
+    NES_u16 value = 0;
     while(i < end) {
-        index = disasembleTest[i];
+        index = array[i];
         OpcodeWrapper* opcodeWrapper = _opcodeWrappers[index];
         addressingMode = opcodeWrapper.addressingModeName;
 
@@ -1171,68 +1173,69 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
         } else if([addressingMode isEqual:@"Implied"]) {
             instruction = [instruction stringByAppendingString:@""];
         } else if([addressingMode isEqual:@"Immediate"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
             instruction = [instruction stringByAppendingFormat:@"#$%02x", value];
         } else if([addressingMode isEqual:@"Relative"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
             instruction = [instruction stringByAppendingFormat:@"$%04x", (value+i)];
         } else if([addressingMode isEqual:@"Absolute"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
-            value = (disasembleTest[i] << 8) + value;
+            value = (array[i] << 8) + value;
             ++i;
 
             instruction = [instruction stringByAppendingFormat:@"$%04x", value];
         } else if([addressingMode isEqual:@"Absolute-X"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
-            value = (disasembleTest[i] << 8) + value;
+            value = (array[i] << 8) + value;
             ++i;
 
             instruction = [instruction stringByAppendingFormat:@"$%04x, X", value];
         } else if([addressingMode isEqual:@"Absolute-Y"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
-            value = (disasembleTest[i] << 8) + value;
+            value = (array[i] << 8) + value;
             ++i;
 
             instruction = [instruction stringByAppendingFormat:@"$%04x, Y", value];
         } else if([addressingMode isEqual:@"Indirect"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
-            value = (disasembleTest[i] << 8) + value;
+            value = (array[i] << 8) + value;
             ++i;
 
             instruction = [instruction stringByAppendingFormat:@"($%04x)", value];
         } else if([addressingMode isEqual:@"Indirect-X"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
 
             instruction = [instruction stringByAppendingFormat:@"($%02x)", value];
         } else if([addressingMode isEqual:@"Indirect-Y"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
 
             instruction = [instruction stringByAppendingFormat:@"($%02x)", value];
         } else if([addressingMode isEqual:@"Zero Page"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
 
             instruction = [instruction stringByAppendingFormat:@"$%02x", value];
         } else if([addressingMode isEqual:@"Zero Page-X"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
 
             instruction = [instruction stringByAppendingFormat:@"$%02x", value];
         } else if([addressingMode isEqual:@"Zero Page-Y"]) {
-            value = disasembleTest[i];
+            value = array[i];
             ++i;
 
             instruction = [instruction stringByAppendingFormat:@"$%02x", value];
         }
 
+        NSLog(@"%@", instruction);
         // TODO: Comments
 //        instruction = [instruction stringByAppendingString:comment];
         [disassembleArray addObject:instruction];
@@ -1242,8 +1245,11 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     return [disassembleArray copy];
 }
 
-- (NSArray*)calculateReachableInstructions:(NES_u8*)arrayInstruction count:(NES_u8)count {
+- (NSArray*)calculateReachableInstructions:(NES_u8*)arrayInstruction
+                                     start:(uint32_t)start
+                                     count:(uint32_t)count {
     NSMutableArray* isReachableArray = [[NSMutableArray alloc] init];
+
     NSMutableArray* stack = [[NSMutableArray alloc] init];
 
     for(int j = 0; j < count; ++j) {
@@ -1251,48 +1257,44 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
     }
 
     OpcodeWrapper* opcodeWrapper;
-    // No queue in the standard library
-    Queue* queue = [[Queue alloc] init];
-    int i = 0;
+    uint32_t i = start;
     while(i < count) {
         if([isReachableArray[i] boolValue]) {
-            i = [(NSNumber*)[queue pop] intValue];
+            i = [(NSNumber*)[stack lastObject] unsignedIntValue];
+            [stack removeObject:[stack lastObject]];
         }
 
         opcodeWrapper = _opcodeWrappers[arrayInstruction[i]];
-        //        opcodeWrapper = _opcodeWrappers[arrayInstruction[i]];
-        for(int k = 0; k <= opcodeWrapper.lengthInBytes; ++k) {
+        NSLog(@"Name: %@ at address %d", opcodeWrapper.name, i+1);
+        for(int k = 0; k < opcodeWrapper.lengthInBytes; ++k) {
             isReachableArray[i+k] = [[NSNumber alloc] initWithBool:YES];
         }
 
         if([self isBranch:opcodeWrapper.name]) {
-            [queue push:[NSNumber numberWithInt:i]];
+            [stack addObject:[NSNumber numberWithUnsignedInt:i+opcodeWrapper.lengthInBytes]];
+            i += arrayInstruction[i+1]+opcodeWrapper.lengthInBytes;
+        } else if([opcodeWrapper.name isEqual:@"JMP"]
+                  || [opcodeWrapper.name isEqual:@"JSR"]) {
+            [stack addObject:[NSNumber numberWithUnsignedInt:i+opcodeWrapper.lengthInBytes]];
+            NSLog(@"%d", arrayInstruction[i+2]);
+            ++i;
+            NES_u16 value = arrayInstruction[i];
+            ++i;
+            NES_u16 value2 = (arrayInstruction[i] << 8);
 
-            i += [self getNextAddressUsingAddrMode:opcodeWrapper.addressingModeName];
-        } else if([opcodeWrapper.name isEqual:@"JUMP"]) {
-            i = [self getNextAddressUsingAddrMode:opcodeWrapper.addressingModeName];
-        } else if([opcodeWrapper.name isEqual:@"JSR"]) {
-            i = [self getNextAddressUsingAddrMode:opcodeWrapper.addressingModeName];
-            [stack addObject:[NSNumber numberWithInt:i]];
-            // TODO: We may come back or we may not
-        }else if([opcodeWrapper.name isEqual:@"RTS"]) {
-            i = [(NSNumber*)[stack lastObject] intValue];
-            [stack removeLastObject];
+            i = (value + value2) - 0x8000;
+        } else if([opcodeWrapper.name isEqual:@"RTS"]) {
+            i = [(NSNumber*)[stack lastObject] unsignedIntValue];
+            [stack removeObject:[stack lastObject]];
+        } else {
+            i += opcodeWrapper.lengthInBytes;
         }
 
-//        opcodeWrapper = _opcodeWrappers[arrayInstruction[i]];
-        for(int k = 0; k <= opcodeWrapper.lengthInBytes; ++k) {
-            isReachableArray[i+k] = [[NSNumber alloc] initWithBool:YES];
-        }
-
-        i += opcodeWrapper.lengthInBytes;
-
-        if(i == count && [queue size] == 0) {
-            i = [(NSNumber*)[queue pop] intValue];
+        if(i == count && [stack count] == 0) {
+            i = [(NSNumber*)[stack lastObject] unsignedIntValue];
+            [stack removeObject:[stack lastObject]];
         }
     }
-
-
 
     return isReachableArray;
 }
@@ -1303,18 +1305,13 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
                        @"BMI", @"BNE", @"BPL",
                        @"BVC", @"BVS", nil];
 
-    for(NSString* string in branches) {
-        if([string isEqual:string]) {
-            return true;
+    for(NSString* s in branches) {
+        if([string isEqual:s]) {
+            return YES;
         }
     }
 
-    return false;
+    return NO;
 }
 
-- (int)getNextAddressUsingAddrMode:(NSString*)addressingMode {
-    
-
-    return -1;
-}
 @end

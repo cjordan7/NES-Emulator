@@ -7,6 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import "../Utils.h"
+#import "Bus.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -28,20 +29,18 @@ typedef struct {
 
 } PPUState;
 
-typedef enum {
-    VERTICAL_MIRRORING,
-    HORIZONTAL_MIRRORING,
-    SINGLE_SCREEN,
-    FOUR_SCREEN
-
-} Mirroring;
-
 @interface PPU : NSObject
+
+@property(nonatomic) Bus* mainBus;
+@property(nonatomic) Bus* ppuBus;
 
 - (void)clock;
 
 - (PPUState)getPPUState;
 - (void)notify:(NES_u16)modifiedRegister;
+
+- (void)connectMainBus:(Bus*)bus;
+- (void)connectPPUBus:(Bus*)bus;
 
 -(uint32_t*)getScreenPixels;
 

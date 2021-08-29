@@ -7,13 +7,9 @@
 
 #import "Queue.h"
 
-
-struct Node;
-
-typedef struct {
+typedef struct Node {
     struct Node* next;
-    id element;
-
+    int element;
 } Node;
 
 @interface Queue() {
@@ -28,26 +24,51 @@ typedef struct {
 
 - (instancetype)init {
     if(self = [super init]) {
-        tail = malloc(sizeof(Node));
-        head = malloc(sizeof(Node));
+        tail = NULL;
+        head = NULL;
     }
 
     return self;
 }
 
 - (void)dealloc {
-    Node* temp = tail;
+    Node* temp = head;
     while(!temp) {
-        
+        Node* next = temp->next;
+        free(temp);
+        temp = next;
     }
 }
 
-- (void)push:(id)element {
+- (void)push:(uint32_t)element {
+    Node* next = malloc(sizeof(Node));
+    fprintf(stderr, "HereBefore\n");
+    next->element = element;
+    fprintf(stderr, "HereAfter\n");
+    if(size) {
+        tail->next = next;
+    } else {
+        head = next;
+        tail = next;
+    }
 
+    ++size;
 }
 
-- (id)pop {
-    return nil;
+- (uint32_t)pop {
+    if(size == 0) {
+        NSLog(@"Problem");
+        exit(1);
+    }
+
+    --size;
+    int element = head->element;
+    Node* oldHead = head;
+    head = head->next;
+
+    free(oldHead);
+
+    return element;
 }
 
 - (uint32_t)size {

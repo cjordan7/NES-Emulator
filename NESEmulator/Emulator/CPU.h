@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 
 #import "Bus.h"
+#import "CPUBus.h"
 #import "../Utils.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -48,10 +49,9 @@ typedef struct {
 
 - (void)clock;
 
-
-
 - (CPUState)DEBUGgetCPUState;
-- (NSArray*)DEBUGDisassemble:(int)begin end:(int)end;
+- (NSArray*)DEBUGDisassemble:(int)begin end:(int)end
+                       array:(NES_u8*)array size:(uint32_t)size;
 
 - (void)connectBus:(Bus*)bus;
 

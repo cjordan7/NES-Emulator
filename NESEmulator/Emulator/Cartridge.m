@@ -42,9 +42,8 @@
 
         ByteArray byteArray = [_fileManager readFileBytes:name type:type];
 
-        [self parseFile:byteArray];
-
         self.isValid = NO;
+        [self parseFile:byteArray];
         self.hasRAM = NO;
     }
 
@@ -77,26 +76,28 @@
 
 - (void)handleINESFormat:(ByteArray)byteArray {
     // Byte 4: Size of PRG ROM (16 KB units)
-    uint32_t prgROMSize = byteArray.bytePtr[4];
+    self.prgROMSize = byteArray.bytePtr[4];
 
-    pgrROM = calloc(prgROMSize*16384, sizeof(NES_u8));
+    pgrROM = calloc(self.prgROMSize*16384, sizeof(NES_u8));
 
+    NSLog(@"PRG Size %d", self.prgROMSize);
     // Byte 5: Size of CHR ROM (8 KB units). If 0, then uses CHR RAM.
-    uint32_t chrSize = byteArray.bytePtr[5];
+    self.chrSize = byteArray.bytePtr[5];
 
-    if(!chrSize) {
+    if(!self.chrSize) {
         // This is a RAM now
-        chrSize = byteArray.bytePtr[8];
+        self.chrSize = byteArray.bytePtr[8];
         self.hasRAM = YES;
     }
 
-    chrMemory = calloc(chrSize*8192, sizeof(NES_u8));
-    grayscalePtr = calloc(chrSize*8192, sizeof(chrMemory));
+    NSLog(@"CHR Size %d", self.chrSize);
+    chrMemory = calloc(self.chrSize*8192, sizeof(NES_u8));
+    grayscalePtr = calloc(self.chrSize*8192, sizeof(chrMemory));
 
 
     // Byte 6: Mapper, mirroring, battery, trainer: ()
     uint32_t mapperNumber = (byteArray.bytePtr[6] >> 4) | (byteArray.bytePtr[7] &0xF0);
-    [self setMapperWithInt:mapperNumber];
+    NSLog(@"Mapper Number %d", mapperNumber);
 
     uint32_t flagSix = byteArray.bytePtr[6];
     self.mirroring = flagSix & 0x01 ? VERTICAL_MIRRORING: HORIZONTAL_MIRRORING;
@@ -114,12 +115,16 @@
 
     // TODO: flag 7, 9 and 10 ???
 
-    memcpy(pgrROM, &byteArray.bytePtr[index], prgROMSize*16384*sizeof(NES_u8));
-    index += prgROMSize*16384;
+    memcpy(pgrROM, &byteArray.bytePtr[index], self.prgROMSize*16384*sizeof(NES_u8));
+    index += self.prgROMSize*16384;
 
-    memcpy(chrMemory, &byteArray.bytePtr[index], chrSize*8192*sizeof(NES_u8));
+    memcpy(chrMemory, &byteArray.bytePtr[index], self.chrSize*8192*sizeof(NES_u8));
+
+    [self setMapperWithInt:mapperNumber];
 
     self.isValid = YES;
+
+    NSLog(@"IsValid = %d", _isValid);
 }
 
 - (void)handleNES2Dot0Format:(ByteArray)byteArray {
@@ -128,9 +133,15 @@
 
 - (void)setMapperWithInt:(uint32_t)mapperNumber {
     switch(mapperNumber) {
-        case 0:
+        case 0: {
+            if(self.prgROMSize == 1) {
+                pgrROM = realloc(pgrROM, 2*16384*sizeof(NES_u8));
+                NES_u8 test[2*16384];
+                memcpy(test, pgrROM, 2*16384*sizeof(NES_u8));
+                memmove(pgrROM+16384, pgrROM, 16384*sizeof(NES_u8));
+            }
             self.mapper = [[Mapper000 alloc] init];
-            break;
+            } break;
         default:
             // TODO: Error
             NSLog(@"This should not happen");
@@ -146,6 +157,10 @@
         return chrMemory[mapped];
     } else if(0x8000 <= address && address <= 0xFFFF) {
         // CPU
+                if(address == 0xFFFC || address == (0xFFFC+1)) {
+                    NSLog(@"\n\n\nHEre ---------- \n\n\n %d ", pgrROM[mapped]);
+                }
+
         return pgrROM[mapped];
     }
 

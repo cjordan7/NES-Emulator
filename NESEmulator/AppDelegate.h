@@ -6,8 +6,10 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "Emulator/Cartridge.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 
+@property(nonatomic, strong) Cartridge* cartridge;
 @end
 

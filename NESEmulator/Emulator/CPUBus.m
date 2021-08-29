@@ -11,6 +11,10 @@
 
 -(NES_u8)read:(NES_u16)address {
     if(0x8000 <= address && address <= 0xFFFF) {
+        if(address == 0xFFFC) {
+            
+        }
+
         return [self.cartridge read:address];
     } else {
         return [super read:address];
@@ -36,7 +40,7 @@
     } else if(0x8000 <= address && address <= 0xFFFF) {
         // TODO: Error most of the time
 
-        NSLog(@"Warning. This may not happen. Check if there is a RAM");
+        NSLog(@"Warning. This may happen. Check if there is a RAM");
         [self.cartridge write:address value:value];
     } else {
         ram[address] = value;

@@ -15,14 +15,7 @@
         return address;
     } else if(0x8000 <= address && address <= 0xFFFF) {
         // CPU
-        if(numberBanks == 1) {
-            // If numberBanks is 1 then the data is mirrored.
-            // But I haven't mirrored it specifically in my cartridge.
-            // So this is why I have to do this.
-            return (address - 0x8000) % 0x4000;
-        } else {
-            return (address - 0x8000);
-        }
+        return (address - 0x8000);
     }
 
     NSLog(@"This should not happen");

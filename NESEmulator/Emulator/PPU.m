@@ -54,9 +54,6 @@
 @property(nonatomic) NES_u8 fineXScroll;
 @property(nonatomic) NES_u8 FirstOrSecondWriteToggle;
 
-@property(nonatomic, strong) Bus* mainBus;
-@property(nonatomic, strong) Bus* ppuBus;
-
 @end
 
 @implementation PPU
