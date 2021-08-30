@@ -1276,7 +1276,6 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
         } else if([opcodeWrapper.name isEqual:@"JMP"]
                   || [opcodeWrapper.name isEqual:@"JSR"]) {
             [stack addObject:[NSNumber numberWithUnsignedInt:i+opcodeWrapper.lengthInBytes]];
-            NSLog(@"%d", arrayInstruction[i+2]);
             ++i;
             NES_u16 value = arrayInstruction[i];
             ++i;
@@ -1290,7 +1289,7 @@ static const NES_u8 C_BIT = 1 << 0; // Carry
             i += opcodeWrapper.lengthInBytes;
         }
 
-        if(i == count && [stack count] == 0) {
+        if(i == count && [stack count] != 0) {
             i = [(NSNumber*)[stack lastObject] unsignedIntValue];
             [stack removeObject:[stack lastObject]];
         }
